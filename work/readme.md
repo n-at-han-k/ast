@@ -6,7 +6,8 @@ Scratch space for experiments. The read-only upstream checkouts live in `../refs
 | --- | --- |
 | `prism_example.rb` | lists the methods a Ruby file defines, via Prism |
 | `md_nodes.rb` | shared commonmarker traversal used by the Markdown scripts |
-| `md_ast.rb` | `AST::Node` subclasses (`Rule`, `Fenced`, `Reasoning`, …) built from the commonmarker tree |
+| `md_rules.rb` | parses via TreeHaver and classifies blocks into `Ast::Merge::SectionTyping::TypedSection`s |
+| `treehaver_parse.rb` | what TreeHaver returns for a markdown file, and which pattern hooks the nodes have |
 | `ast_gems_survey.rb` | what the AST gems in the bundle provide, and their pattern-matching support |
 | `ast_crispr_probe.rb` | walks the `Ast::Crispr` namespace |
 | `md_validate.rb` | validates documents with one `case`/`in` statement (`--strict` to exit non-zero) |
@@ -42,68 +43,68 @@ not a specific word.
 
 ## Validating with pattern matching
 
-`md_ast.rb` builds the document out of real `AST::Node` subclasses (the `ast` gem, already in the
-bundle via `parser`). One class per block kind — `Rule`, `Fenced`, `Indented`, `Reasoning`, `Prose`,
-`Items`, `Break`, `Table` — grouped into a `Section`, each with its own `deconstruct_keys`. The
-whole schema is then one `case` in `md_validate.rb`:
+The types come from `ast-merge`, not from here. `Ast::Merge::SectionTyping` already provides what
+this needs:
+
+- `TypedSection = Struct.new(:type, :name, :node, :metadata, keyword_init: true)` — a Struct, so it
+  supports `deconstruct_keys` natively and goes straight into a `case`.
+- `CallableClassifier.new(lambda)` — a classifier without a subclass. The gem's own example writes a
+  lambda that walks `node.arguments` to pull out a block name, which is exactly how `md_rules.rb`
+  walks `next_sibling` to collect a heading's body.
+- `classify_all(children)` — classifies a node list, buffering consecutive unclassified nodes into
+  `:unclassified` sections, which `unclassified?` then skips (the title, table of contents and
+  summary table).
+
+`md_rules.rb` parses through TreeHaver with the commonmarker backend and classifies each heading
+matching `N. Name` into a `TypedSection`, with the body blocks typed by role — `:rule`,
+`:example`, `:indented_example`, `:reasoning`, `:terminator`, `:prose`, `:items` — in its metadata.
+Block types come from `Markdown::Merge::MarkdownStructure.node_type`, so they are the canonical
+markdown types rather than one backend's spelling.
+
+Validation is then one `case` over those typed sections:
 
 ```ruby
 case section
-in { examples: [*, Indented => block, *] }
-  [:indented_example, "the code block on line #{block.line} is indented, so it carries no language"]
+in TypedSection(metadata: { indented: [TypedSection(metadata: { line: }), *] })
+  [:indented_example, "the code block on line #{line} is indented, so it carries no language"]
 
-in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *], terminated: true }
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *], reasoning: [TypedSection, *], terminated: true })
   [:ok, "rule, example and reasoning all present"]
 
-in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *] }
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *], reasoning: [TypedSection, *] })
   [:no_terminator, "does not end with a thematic break"]
 
-in { rule: Rule, examples: [Fenced, *] }
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *] })
   [:no_reasoning, "nothing states why the rule holds"]
 
-in { rule: Rule(text:) }
-  [:no_example, "#{text[0, 40].inspect} is asserted with no example"]
+in TypedSection(name:, metadata: { rule: TypedSection })
+  [:no_example, "#{name} is asserted with no code block"]
 
-in { blocks: [opening, *] }
-  [:no_rule, "the section opens with #{opening.type}, so no bold directive states the rule"]
+in TypedSection(metadata: { blocks: [TypedSection(type:), *] })
+  [:no_rule, "the section opens with #{type}, so no bold directive states the rule"]
 
-in { heading: }
-  [:empty, "#{heading.inspect} has no body"]
+in TypedSection(name:)
+  [:empty, "#{name} has no body"]
 end
 ```
 
-Three things make this read as patterns rather than as conditions in disguise:
-
-- **A class per kind, so the arms name types.** A fenced block and an indented one are `Fenced` and
-  `Indented`, not one `Example` carrying a `lang` that might be nil.
-- **Key presence carries the meaning.** `Section#deconstruct_keys` omits `rule:` when there is no
-  rule and omits `terminated:` unless the section ends in a break, so the arms test for a key rather
-  than compare against `nil`. `Fenced#deconstruct_keys` is a superset of `Indented`'s — it adds
-  `lang:` — which is the same trick.
-- **Failures are arms, not checks.** Every outcome, including the empty section, is a branch of the
-  one `case`, so there is no fallthrough and no guard clause.
-
-Patterns are ordered most specific first, which is load-bearing: `indented_example` precedes the
+Arms are ordered most specific first, which is load-bearing: `indented_example` precedes the
 conforming arm so an indented block is reported wherever it sits, and a section with several faults
 reports the first arm that matches.
 
-Two Ruby constraints also shape it. A pattern cannot live in a constant — `*` is invalid in a hash
-literal and `^` pins expressions, not constants — so patterns are written inline. And an array
-pattern allows one splat, so `[Rule, *, Fenced, *, Reasoning]` does not parse; gaps go in a find
-pattern (`[*, x, *]`) or into derived `Section` keys that each get their own pattern.
+### Why the roles sit in metadata
 
-Because the nodes are genuine `AST::Node`s, `to_sexp` comes for free — `--sexp` prints the tree, and
-it is what caught three bugs the table hid: a reasoning label classified as the rule in a section
-that has no rule, softbreaks dropped so two lines ran together (`cannot beextracted`), and reasoning
-text repeating its own label.
+No markdown parser in the bundle supports pattern matching — `treehaver_parse.rb` and
+`ast_gems_survey.rb` record `deconstruct=false deconstruct_keys=false` for
+`Commonmarker::Merge::Backend::Node`, `Commonmarker::Node` and `Markly::Node` alike. Across all 31
+structuredmerge gems, `grep -rn deconstruct` matches exactly one file, `prism-merge`'s provider, and
+only because Prism itself implements both hooks. Classifying into `TypedSection` sidesteps that: the
+raw node rides along in `node:` and never needs to be matched directly.
 
-```
-(section
-  (rule "Chain the list models in a fixed order.")
-  (indented "ListStore -> FilterListModel -> SortListModel -> SingleSelection\n")
-  (reasoning "Rationale" "The diagram is indented rather than fenced, so it carries no language…")
-  (break))
-```
+The grouping has to happen somewhere, too. Ruby allows one splat per array pattern, so a conjunction
+over a flat sibling sequence — rule first, fenced code somewhere, reasoning after it, break last —
+cannot be written as a single pattern; `[rule, *, example, *, reasoning]` is a syntax error. Naming
+the roles in metadata is what lets each arm be one flat pattern with no traversal in the validator.
 
 ### Fixtures
 
