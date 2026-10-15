@@ -28,6 +28,26 @@ git clone --recurse-submodules <this repo>
 git submodule update --init --recursive
 ```
 
+## Dev shell
+
+`nix develop`, or `direnv allow` once and it loads on `cd`.
+
+| shell | contents |
+| --- | --- |
+| `nix develop` | `ruby_3_4` (3.4.9, matching the system ruby), `rubyfmt`, plus the shared `mkRubyShell` base: `bundix`, `git`, `libyaml`, `openssl`, `overmind`, `tmux`, `pkg-config` and a C toolchain |
+| `nix develop .#notebook` | the above plus `python3` with `jupyterlab`/`notebook`/`ipykernel`, and `iruby` (a Ruby Jupyter kernel) |
+
+Both shells `unset RUBYOPT`. Without that, an inherited `RUBYOPT=-rrubyshell ...` makes every
+`ruby` invocation fail with `cannot load such file -- rubyshell`. `.envrc` unsets it too, since
+direnv does not run the flake's `shellHook` conditions the same way.
+
+`BUNDLE_PATH` points at `.bundle/vendor` in the repo root rather than at each submodule, because
+Nix's ruby cannot write to its own gem directory in the store and because per-submodule
+`vendor/bundle` directories would dirty the upstream checkouts.
+
+The `notebook` shell starts a *separate* Jupyter server from the one the research notebook is
+currently driven through (that one is rooted at `$HOME`; see below).
+
 ## Work
 
 See `work/readme.md`. `work/prism_example.rb` lists the methods defined in a Ruby file using

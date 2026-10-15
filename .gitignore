@@ -2,3 +2,8 @@
 __pycache__/
 .jupyter/
 .venv/
+.direnv/
+.bundle/
+vendor/bundle/
+result
+result-*
