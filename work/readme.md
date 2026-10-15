@@ -6,9 +6,10 @@ Scratch space for experiments. The read-only upstream checkouts live in `../refs
 | --- | --- |
 | `prism_example.rb` | lists the methods a Ruby file defines, via Prism |
 | `md_nodes.rb` | shared commonmarker traversal used by the Markdown scripts |
+| `md_ast.rb` | typed AST nodes (`Rule`, `Example`, `Reasoning`, …) built from the commonmarker tree |
+| `md_validate.rb` | validates documents with one `case`/`in` statement (`--strict` to exit non-zero) |
 | `markdown_ast.rb` | dumps a Markdown AST (`--outline`, `--counts`) |
 | `md_shape.rb` | prints the block shape of each section — how the schema below was derived |
-| `md_schema.rb` | checks a document against the rule/example/reasoning schema (`--strict` to exit non-zero) |
 | `fix_mojibake.rb` | reverses double-encoded UTF-8 (`--write` to apply) |
 
 ## The rule/example/reasoning schema
@@ -37,13 +38,70 @@ first block. The reasoning label is `Rationale:` in 10 of 17 sections and otherw
 `Store methods:`, `The pattern:`, `To trigger filter update:` — so the check requires a bold label,
 not a specific word.
 
-`md_schema.rb` treats an h2 titled `N. Name` as a rule section and skips the rest (title, table of
-contents, summary table). Run against its own source document, **14 of 17 sections conform**:
+## Validating with pattern matching
+
+`md_ast.rb` turns the commonmarker tree into `Data` types — `Rule`, `Example`, `Reasoning`, `Prose`,
+`Items`, `Break`, `Table` — grouped into a `Section`. `Data` gives `deconstruct_keys` for free, so
+the whole schema is one `case` statement in `md_validate.rb`:
+
+```ruby
+case section
+in Section(rule: Rule, examples: [Example(lang: String), *], reasoning: [Reasoning, *], terminated: true)
+  [:ok, "rule, example and reasoning all present"]
+in Section(rule: nil, blocks: [first, *])
+  [:no_rule, "section opens with #{first.class}, not a bold directive"]
+in Section(examples: [])
+  [:no_example, "no code block"]
+in Section(examples: [*, Example(lang: nil, line:), *])
+  [:unfenced_example, "code block on line #{line} has no language"]
+in Section(reasoning: [])
+  [:no_reasoning, "no bold-labelled block after the rule"]
+in Section(terminated: false)
+  [:no_terminator, "does not end with a thematic break"]
+end
+```
+
+Two Ruby constraints shape this. A pattern cannot be stored in a constant — `*` is invalid in a hash
+literal and `^` pins only expressions, not constants — so patterns must be written inline in a
+`case`. And an array pattern allows a single splat, so `[Rule, *, Example, *, Reasoning]` is a
+syntax error; sequence gaps go in a find pattern (`[*, x, *]`) or, as here, in derived `Section`
+members that each get their own pattern.
+
+`Section` is matched first against the conforming shape, so a section with several faults reports the
+first branch that matches rather than every fault.
+
+### Fixtures
+
+`fixtures/correct.md` and `fixtures/incorrect.md` exercise the branches in both directions; the
+incorrect one breaks the schema in exactly one way per section.
+
+```sh
+ruby work/md_validate.rb work/fixtures/correct.md work/fixtures/incorrect.md
+```
 
 ```
-FAIL line 366  12. Incremental Development Rule   - no example: section has no code block
-FAIL line 431  14. ListModel Chain Pattern        - unfenced example: 1 code block without a language
-FAIL line 515  16. Delete with Undo Pattern       - no rule: first block is code_block, not a bold directive
+work/fixtures/correct.md: 3 rule section(s)
+  ok   1. Memoize Widgets           ok                 rule, example and reasoning all present
+  ok   2. Prefer tap Over Locals    ok                 rule, example and reasoning all present
+  ok   3. One Expression Per Method ok                 rule, example and reasoning all present
+  3/3 conform
+
+work/fixtures/incorrect.md: 5 rule section(s)
+  FAIL 1. Missing Rule              no_rule            section opens with example, not a bold directive
+  FAIL 2. Missing Example           no_example         no code block
+  FAIL 3. Unfenced Example          unfenced_example   code block on line 33 has no language
+  FAIL 4. Missing Reasoning         no_reasoning       no bold-labelled block after the rule
+  FAIL 5. Missing Terminator        no_terminator      does not end with a thematic break
+  0/5 conform
+```
+
+An h2 titled `N. Name` is treated as a rule section; the title, table of contents and summary table
+are skipped. Run against the real document, **14 of 17 sections conform**:
+
+```
+FAIL 12. Incremental Development Rule  no_example         no code block
+FAIL 14. ListModel Chain Pattern       unfenced_example   code block on line 435 has no language
+FAIL 16. Delete with Undo Pattern      no_rule            section opens with example, not a bold directive
 ```
 
 Those three are genuine gaps in the reference document: §12 argues by numbered list with no code, §14
