@@ -19,3 +19,9 @@
 [submodule "ruby-next"]
 	path = refs/ruby-next
 	url = https://github.com/ruby-next/ruby-next
+[submodule "refs/commonmark-spec"]
+	path = refs/commonmark-spec
+	url = https://github.com/commonmark/commonmark-spec
+[submodule "refs/cmark-gfm"]
+	path = refs/cmark-gfm
+	url = https://github.com/github/cmark-gfm

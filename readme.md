@@ -21,6 +21,8 @@ All under `refs/`:
 | `refs/rdoc` | https://github.com/ruby/rdoc | Ruby's bundled documentation generator; its own parser and code-object model |
 | `refs/yard` | https://github.com/lsegal/yard | documentation generator with a tag-based object model and its own Ruby parsers |
 | `refs/ruby-next` | https://github.com/ruby-next/ruby-next | transpiles modern syntax to older Ruby; the one here that rewrites a tree rather than only reading it |
+| `refs/commonmark-spec` | https://github.com/commonmark/commonmark-spec | the CommonMark standard; `spec.txt` carries 655 conformance examples |
+| `refs/cmark-gfm` | https://github.com/github/cmark-gfm | GitHub's GFM spec and reference implementation (a fork of `commonmark/cmark`); `test/spec.txt` carries 672 examples |
 
 ```sh
 git clone --recurse-submodules <this repo>

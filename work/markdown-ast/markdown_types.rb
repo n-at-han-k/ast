@@ -1,55 +1,48 @@
-require "commonmarker-merge"
-require "markdown-merge"
-require "tree_haver"
+require "commonmarker"
 
 module MarkdownTypes
-  SPEC = {
-    "Document" => [:document, []],
-    "Heading" => [:heading, [:level]],
-    "Paragraph" => [:paragraph, []],
-    "CodeBlock" => [:code_block, [:lang, :code]],
-    "HtmlBlock" => [:html_block, [:content]],
-    "BlockQuote" => [:block_quote, []],
-    "List" => [:list, [:ordered, :tight]],
-    "ListItem" => [:list_item, []],
-    "ThematicBreak" => [:thematic_break, []],
-    "Table" => [:table, []],
-    "TableRow" => [:table_row, []],
-    "TableCell" => [:table_cell, []],
-    "FootnoteDefinition" => [:footnote_definition, []],
-    "Text" => [:text, [:content]],
-    "Code" => [:code, [:content]],
-    "Emph" => [:emph, []],
-    "Strong" => [:strong, []],
-    "Link" => [:link, [:url, :title]],
-    "Image" => [:image, [:url, :title]],
-    "SoftBreak" => [:softbreak, []],
-    "LineBreak" => [:linebreak, []],
-    "HtmlInline" => [:html_inline, [:content]],
-    "Unknown" => [:unknown, [:original]],
+  SPECIMEN = File.expand_path("kitchen-sink.md", __dir__)
+
+  DEFAULT_OPTIONS = { extension: Commonmarker::Config::OPTIONS[:extension] }.freeze
+
+  DISCOVERY_OPTIONS = {
+    extension: Commonmarker::Config::OPTIONS[:extension]
+      .to_h { |name, value| [name, [true, false].include?(value) ? true : value] }
+      .merge(front_matter_delimiter: "---"),
   }.freeze
 
-  class Node
-    attr_reader :line, :children
+  PROPERTY_METHODS = (Commonmarker::Node.instance_methods - Object.instance_methods - Enumerable.instance_methods)
+    .reject { |name| name.to_s.end_with?("=") }
+    .sort
+    .freeze
 
-    def initialize(line:, children:, **fields)
+  POSITIONAL = %i[source_position].freeze
+  ALIASES = { string_content: :literal }.freeze
+  WHITESPACE = %i[softbreak linebreak].freeze
+
+  class Node
+    attr_reader :line, :end_line, :children, :fields
+
+    def initialize(line:, end_line:, children:, **fields)
       @line = line
+      @end_line = end_line
       @children = children
       @fields = fields
-      fields.each { |name, value| instance_variable_set(:"@#{name}", value) }
+      fields.each { |name, value| instance_variable_set(:"@#{name.to_s.delete_suffix("?")}", value) }
     end
-
-    attr_reader :fields
 
     def type = self.class::TYPE
 
     def deconstruct = children
 
     def deconstruct_keys(_keys)
-      { type:, line:, children: }.merge(fields)
+      { type:, line:, end_line:, children: }.merge(fields)
     end
 
     def text
+      return " " if WHITESPACE.include?(type)
+      return literal.to_s if fields.key?(:literal)
+
       children.map(&:text).join
     end
 
@@ -63,56 +56,81 @@ module MarkdownTypes
     end
   end
 
-  SPEC.each do |class_name, (type, fields)|
-    klass = Class.new(Node)
-    klass.const_set(:TYPE, type)
-    fields.each { |field| klass.send(:attr_reader, field) }
-    const_set(class_name, klass)
-  end
-
-  Text.define_method(:text) { content.to_s }
-  Code.define_method(:text) { content.to_s }
-  CodeBlock.define_method(:text) { code.to_s }
-  SoftBreak.define_method(:text) { " " }
-  LineBreak.define_method(:text) { " " }
-
-  BY_TYPE = SPEC.to_h { |class_name, (type, _)| [type, const_get(class_name)] }.freeze
+  BY_TYPE = {}
+  TYPES = {}
 
   module_function
 
-  def parse(path, backend: "commonmarker")
-    TreeHaver.with_backend(backend) do
-      TreeHaver.parser_for(:markdown).parse(File.read(path))
-    end.root_node.then { |root| build(root) }
+  def properties_of(node)
+    PROPERTY_METHODS.select { |method| node.node_supports?(method) == true }
+  end
+
+  def fields_of(node)
+    properties_of(node) - POSITIONAL - ALIASES.keys
+  end
+
+  def class_name_for(type)
+    type.to_s.split("_").map(&:capitalize).join
+  end
+
+  def register(node)
+    BY_TYPE.fetch(node.type) do
+      fields = fields_of(node)
+
+      Class.new(Node).tap do |klass|
+        klass.const_set(:TYPE, node.type)
+
+        fields.each do |field|
+          reader = field.to_s.delete_suffix("?")
+          klass.send(:attr_reader, reader)
+          klass.send(:alias_method, field, reader) unless field.to_s == reader
+        end
+
+        ALIASES.each do |alias_name, target|
+          klass.send(:alias_method, alias_name, target) if fields.include?(target)
+        end
+
+        const_set(class_name_for(node.type), klass)
+        TYPES[node.type] = fields
+        BY_TYPE[node.type] = klass
+      end
+    end
+  end
+
+  def discover!(path = SPECIMEN)
+    Commonmarker.parse(File.read(path), options: DISCOVERY_OPTIONS).walk { |node| register(node) }
+    BY_TYPE.keys
+  end
+
+  def parse(path, options: DEFAULT_OPTIONS)
+    parse_string(File.read(path), options:)
+  end
+
+  def parse_string(source, options: DEFAULT_OPTIONS)
+    build(Commonmarker.parse(source, options:))
   end
 
   def build(node)
-    canonical = Markdown::Merge::NodeTypeNormalizer.canonical_type(node.type.to_sym, :commonmarker)
+    klass = register(node)
+    position = node.source_position
 
-    BY_TYPE.fetch(canonical, Unknown).then do |klass|
-      klass.new(
-        line: node.start_line,
-        children: node.children.map { |child| build(child) },
-        **fields_for(canonical, node),
-      )
+    klass.new(
+      line: position[:start_line],
+      end_line: position[:end_line],
+      children: children_of(node).map { |child| build(child) },
+      **TYPES.fetch(node.type).to_h { |field| [field, node.public_send(field)] },
+    )
+  end
+
+  def children_of(node)
+    [].tap do |kids|
+      child = node.first_child
+      while child
+        kids << child
+        child = child.next_sibling
+      end
     end
   end
 
-  def fields_for(canonical, node)
-    inner = node.inner_node
-
-    case canonical
-    when :heading then { level: node.header_level }
-    when :code_block then { lang: blank_to_nil(node.fence_info), code: inner.string_content }
-    when :text, :code, :html_block, :html_inline then { content: inner.string_content }
-    when :link, :image then { url: blank_to_nil(node.url), title: blank_to_nil(node.title) }
-    when :list then { ordered: inner.list_type == :ordered, tight: inner.list_tight }
-    when :unknown then { original: node.type.to_sym }
-    else {}
-    end
-  end
-
-  def blank_to_nil(value)
-    value.to_s.empty? ? nil : value.to_s
-  end
+  discover!
 end

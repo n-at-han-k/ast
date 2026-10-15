@@ -17,21 +17,23 @@ puts
 puts "composed patterns over the base types:"
 document.children.each do |node|
   described = case node
-              in Heading(level: 1, children: [Text(content:)])
-                "title #{content.inspect}"
-              in Heading(level: 2, children: [Text(content:)])
-                "section #{content.inspect}"
+              in Heading(header_level: 1, children: [Text(literal:)])
+                "title #{literal.inspect}"
+              in Heading(header_level: 2, children: [Text(literal:)])
+                "section #{literal.inspect}"
               in Paragraph(children: [Strong => strong, *])
                 "bold-led paragraph #{strong.text.inspect}"
               in Paragraph
                 "paragraph"
-              in CodeBlock(lang: String => lang)
-                "fenced #{lang} block"
-              in CodeBlock(lang: nil)
+              in CodeBlock(fenced?: true, fence_info: "")
+                "fenced block, no language"
+              in CodeBlock(fenced?: true, fence_info:)
+                "fenced #{fence_info} block"
+              in CodeBlock(fenced?: false)
                 "indented block"
-              in List(ordered: true, children:)
-                "ordered list of #{children.size}"
-              in List(ordered: false, children:)
+              in List(list_type: :ordered, list_start:, children:)
+                "ordered list of #{children.size} from #{list_start}"
+              in List(list_type: :bullet, children:)
                 "bullet list of #{children.size}"
               in ThematicBreak
                 "break"
