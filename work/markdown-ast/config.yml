@@ -1,0 +1,493 @@
+---
+generated_from:
+  dtd: refs/commonmark-spec/CommonMark.dtd
+  corpora:
+  - refs/commonmark-spec/spec.txt
+  - refs/cmark-gfm/test/spec.txt
+  specimen: kitchen-sink.md
+property_methods:
+- alert_type
+- append_child
+- delete
+- each
+- fence_info
+- fenced?
+- first_child
+- header_level
+- insert_after
+- insert_before
+- last_child
+- list_start
+- list_tight
+- list_type
+- literal
+- next_sibling
+- node_supports?
+- node_to_commonmark
+- node_to_html
+- parent
+- prepend_child
+- previous_sibling
+- replace
+- source_position
+- string_content
+- title
+- to_commonmark
+- to_html
+- type
+- url
+- walk
+specified_but_not_emitted:
+- custom_block
+- custom_inline
+nodes:
+- name: Alert
+  type: alert
+  source: parser
+  fields:
+  - name: alert_type
+    type: enum
+    required: false
+    domain:
+    - note
+  children:
+  - Paragraph
+- name: BlockQuote
+  type: block_quote
+  source: dtd
+  children:
+  - BlockQuote
+  - CodeBlock
+  - Heading
+  - HtmlBlock
+  - List
+  - Paragraph
+  spec_children:
+  - BlockQuote
+  - CodeBlock
+  - CustomBlock
+  - Heading
+  - HtmlBlock
+  - List
+  - Paragraph
+  - ThematicBreak
+- name: Code
+  type: code
+  source: dtd
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: CodeBlock
+  type: code_block
+  source: dtd
+  fields:
+  - name: fence_info
+    type: string
+    required: false
+    spec: info
+  - name: fenced?
+    type: boolean
+    required: false
+  - name: literal
+    type: string
+    required: false
+- name: DescriptionDetails
+  type: description_details
+  source: parser
+  children:
+  - Paragraph
+- name: DescriptionItem
+  type: description_item
+  source: parser
+  children:
+  - DescriptionDetails
+  - DescriptionTerm
+- name: DescriptionList
+  type: description_list
+  source: parser
+  children:
+  - DescriptionItem
+- name: DescriptionTerm
+  type: description_term
+  source: parser
+  children:
+  - Paragraph
+- name: Document
+  type: document
+  source: dtd
+  children:
+  - Alert
+  - BlockQuote
+  - CodeBlock
+  - DescriptionList
+  - FootnoteDefinition
+  - Frontmatter
+  - Heading
+  - HtmlBlock
+  - List
+  - MultilineBlockQuote
+  - Paragraph
+  - Table
+  - ThematicBreak
+  spec_children:
+  - BlockQuote
+  - CodeBlock
+  - CustomBlock
+  - Heading
+  - HtmlBlock
+  - List
+  - Paragraph
+  - ThematicBreak
+- name: Emph
+  type: emph
+  source: dtd
+  children:
+  - Code
+  - Emph
+  - Escaped
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+  - Underline
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: Escaped
+  type: escaped
+  source: parser
+  children:
+  - Text
+- name: FootnoteDefinition
+  type: footnote_definition
+  source: parser
+  children:
+  - Paragraph
+- name: FootnoteReference
+  type: footnote_reference
+  source: parser
+- name: Frontmatter
+  type: frontmatter
+  source: parser
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: Heading
+  type: heading
+  source: dtd
+  fields:
+  - name: header_level
+    type: integer
+    required: true
+    domain:
+    - '1'
+    - '2'
+    - '3'
+    - '4'
+    - '5'
+    - '6'
+    spec: level
+  children:
+  - Emph
+  - Escaped
+  - Link
+  - Softbreak
+  - Text
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: Highlight
+  type: highlight
+  source: parser
+  children:
+  - Text
+- name: HtmlBlock
+  type: html_block
+  source: dtd
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: HtmlInline
+  type: html_inline
+  source: dtd
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: Image
+  type: image
+  source: dtd
+  fields:
+  - name: title
+    type: string
+    required: false
+    spec: title
+  - name: url
+    type: string
+    required: true
+    spec: destination
+  children:
+  - Emph
+  - Image
+  - Link
+  - Text
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: Insert
+  type: insert
+  source: parser
+  children:
+  - Text
+- name: Item
+  type: item
+  source: dtd
+  children:
+  - BlockQuote
+  - CodeBlock
+  - Heading
+  - HtmlBlock
+  - List
+  - Paragraph
+  - ThematicBreak
+  spec_children:
+  - BlockQuote
+  - CodeBlock
+  - CustomBlock
+  - Heading
+  - HtmlBlock
+  - List
+  - Paragraph
+  - ThematicBreak
+- name: Linebreak
+  type: linebreak
+  source: dtd
+- name: Link
+  type: link
+  source: dtd
+  fields:
+  - name: title
+    type: string
+    required: false
+    spec: title
+  - name: url
+    type: string
+    required: true
+    spec: destination
+  children:
+  - Emph
+  - Escaped
+  - Image
+  - Text
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: List
+  type: list
+  source: dtd
+  fields:
+  - name: list_start
+    type: integer
+    required: false
+    spec: start
+  - name: list_tight
+    type: boolean
+    required: true
+    domain:
+    - 'true'
+    - 'false'
+    spec: tight
+  - name: list_type
+    type: enum
+    required: true
+    domain:
+    - bullet
+    - ordered
+    spec: type
+  children:
+  - Item
+  - Taskitem
+  spec_children:
+  - Item
+  unavailable:
+  - name: delimiter
+    domain:
+    - period
+    - paren
+- name: Math
+  type: math
+  source: parser
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: MultilineBlockQuote
+  type: multiline_block_quote
+  source: parser
+  children:
+  - Paragraph
+- name: Paragraph
+  type: paragraph
+  source: dtd
+  children:
+  - Code
+  - Emph
+  - Escaped
+  - FootnoteReference
+  - Highlight
+  - HtmlInline
+  - Image
+  - Insert
+  - Linebreak
+  - Link
+  - Math
+  - Shortcode
+  - Softbreak
+  - Spoiler
+  - Strikethrough
+  - Strong
+  - Subscript
+  - Superscript
+  - Text
+  - Underline
+  - Wikilink
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: Shortcode
+  type: shortcode
+  source: parser
+- name: Softbreak
+  type: softbreak
+  source: dtd
+- name: Spoiler
+  type: spoiler
+  source: parser
+  children:
+  - Text
+- name: Strikethrough
+  type: strikethrough
+  source: parser
+  children:
+  - Text
+- name: Strong
+  type: strong
+  source: dtd
+  children:
+  - Emph
+  - Escaped
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+  spec_children:
+  - Code
+  - CustomInline
+  - Emph
+  - HtmlInline
+  - Image
+  - Linebreak
+  - Link
+  - Softbreak
+  - Strong
+  - Text
+- name: Subscript
+  type: subscript
+  source: parser
+  children:
+  - Text
+- name: Superscript
+  type: superscript
+  source: parser
+  children:
+  - Text
+- name: Table
+  type: table
+  source: parser
+  children:
+  - TableRow
+- name: TableCell
+  type: table_cell
+  source: parser
+  children:
+  - Code
+  - Strong
+  - Text
+- name: TableRow
+  type: table_row
+  source: parser
+  children:
+  - TableCell
+- name: Taskitem
+  type: taskitem
+  source: parser
+  children:
+  - List
+  - Paragraph
+- name: Text
+  type: text
+  source: dtd
+  fields:
+  - name: literal
+    type: string
+    required: false
+- name: ThematicBreak
+  type: thematic_break
+  source: dtd
+- name: Underline
+  type: underline
+  source: parser
+  children:
+  - Emph
+  - Escaped
+  - Text
+  - Underline
+- name: Wikilink
+  type: wikilink
+  source: parser
+  children:
+  - Text

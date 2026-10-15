@@ -1,0 +1,83 @@
+module MarkdownTypes
+  TYPES = {}
+  BY_TYPE = {}
+
+  class Node
+    attr_reader :line, :end_line, :children
+
+    def initialize(line:, end_line:, children:)
+      @line = line
+      @end_line = end_line
+      @children = children
+    end
+
+    def type = self.class::TYPE
+    def fields = self.class::FIELDS
+    def kind = self.class::KIND
+
+    alias deconstruct children
+
+    def deconstruct_keys(keys)
+      (keys || self.class::KEYS).each_with_object({}) do |key, deconstructed|
+        deconstructed[key] = public_send(key) if self.class::KEYS.include?(key)
+      end
+    end
+
+    def text
+      children.map(&:text).join
+    end
+
+    def name = self.class.name.split("::").last
+
+    def inspect
+      shown = fields.map { |field| [field, public_send(field).inspect].join(": ") }.join(", ")
+      [name, "(", shown, ")"].join
+    end
+  end
+<%- nodes.each do |node| -%>
+
+  class <%= node.name %> < Node
+    TYPE = <%= node.type.inspect %>
+    FIELDS = <%= node.field_names.inspect %>.freeze
+    KEYS = <%= node.keys.inspect %>.freeze
+    KIND = <%= node.kind.inspect %>.freeze
+<%- if node.spec_kind -%>
+    SPEC_KIND = <%= node.spec_kind.inspect %>.freeze
+<%- end -%>
+<%- unless node.unavailable_names.empty? -%>
+    UNAVAILABLE = <%= node.unavailable_names.inspect %>.freeze
+<%- end -%>
+<%- node.domains.each do |field| -%>
+    <%= field.constant_name %> = <%= field.domain_literal.inspect %>.freeze
+<%- end -%>
+<%- unless node.fields.empty? -%>
+
+    attr_reader <%= node.readers.map(&:inspect).join(", ") %>
+<%- end -%>
+
+    def initialize(line:, end_line:, children:<%= node.fields.map { |field| ", #{field.reader}:" }.join %>)
+      super(line:, end_line:, children:)
+<%- node.fields.each do |field| -%>
+      @<%= field.reader %> = <%= field.reader %>
+<%- end -%>
+    end
+<%- node.aliases.each do |from, to| -%>
+
+    alias <%= from %> <%= to %>
+<%- end -%>
+<%- if node.text_field -%>
+
+    def text = <%= node.text_field %>.to_s
+<%- elsif node.whitespace? -%>
+
+    def text = " "
+<%- end -%>
+  end
+
+  TYPES[<%= node.type.inspect %>] = <%= node.field_names.inspect %>.freeze
+  BY_TYPE[<%= node.type.inspect %>] = <%= node.name %>
+<%- end -%>
+
+  TYPES.freeze
+  BY_TYPE.freeze
+end

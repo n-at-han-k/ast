@@ -11,55 +11,69 @@ module Discover
 
   def documents
     {}.tap do |sources|
-      SOURCES.each do |label, path|
-        sources[label] = File.exist?(path) ? SpecCorpus.examples(path) : []
-      end
+      SOURCES.each { |label, path| sources[label] = File.exist?(path) ? SpecCorpus.examples(path) : [] }
       sources["specimen"] = [File.read(MarkdownTypes::SPECIMEN)]
     end
   end
 
-  def types_in(source)
-    {}.tap do |found|
-      source.each do |markdown|
-        Commonmarker.parse(markdown, options: MarkdownTypes::DISCOVERY_OPTIONS).walk do |node|
-          found[node.type] ||= MarkdownTypes.fields_of(node)
+  def survey
+    failures = []
+    types = {}
+
+    documents.each do |label, examples|
+      types[label] = []
+
+      examples.each do |markdown|
+        built = begin
+          MarkdownTypes.parse_string(markdown, options: MarkdownTypes::DISCOVERY_OPTIONS)
+        rescue MarkdownTypes::UnknownType => error
+          failures << [label, error.message]
+          next
         end
+
+        built.then { |document| collect(document, types[label]) }
       end
+
+      types[label].uniq!
     end
+
+    [types, failures]
   end
 
-  def survey
-    documents.transform_values { |source| types_in(source) }
+  def collect(node, into)
+    into << node.type
+    node.children.each { |child| collect(child, into) }
   end
 end
 
 if __FILE__ == $PROGRAM_NAME
-  survey = Discover.survey
-  every_type = survey.values.flat_map(&:keys).uniq
-  fields = survey.values.reduce({}) { |all, types| types.merge(all) }
+  types, failures = Discover.survey
+  every = types.values.flatten.uniq
+  generated = MarkdownTypes::BY_TYPE.keys
 
   puts "examples parsed: #{Discover.documents.transform_values(&:size).inspect}"
-  puts "property methods: #{MarkdownTypes::PROPERTY_METHODS.inspect}"
   puts
-  puts format("%-22s %-24s %-10s %s", "type", "class", "sources", "properties")
-  puts "-" * 104
+  puts format("%-22s %-24s %-12s %s", "type", "class", "sources", "fields")
+  puts "-" * 96
 
-  every_type.sort_by(&:to_s).each do |type|
-    sources = survey.filter_map { |label, types| label if types.key?(type) }
+  every.sort_by(&:to_s).each do |type|
+    sources = types.filter_map { |label, found| label[0] if found.include?(type) }
     puts format(
-      "%-22s %-24s %-10s %s",
+      "%-22s %-24s %-12s %s",
       type,
       MarkdownTypes.class_name_for(type),
-      sources.map { |label| label[0] }.join(","),
-      fields.fetch(type).inspect,
+      sources.join(","),
+      MarkdownTypes::TYPES.fetch(type).inspect,
     )
   end
 
   puts
-  puts "#{every_type.size} types total"
-  survey.each { |label, types| puts "  #{label}: #{types.size}" }
+  puts "#{every.size} types built from #{generated.size} generated classes"
+  types.each { |label, found| puts "  #{label}: #{found.size}" }
 
-  undiscovered = every_type - MarkdownTypes::TYPES.keys
-  puts "not pre-registered by the specimen: #{undiscovered.inspect}"
-  puts "(those are registered lazily when first built)" unless undiscovered.empty?
+  unused = generated - every
+  puts "generated but unseen: #{unused.inspect}"
+  puts "build failures: #{failures.size}"
+  failures.first(5).each { |label, message| puts "  #{label}: #{message}" }
+  exit 1 unless failures.empty?
 end
