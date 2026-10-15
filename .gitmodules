@@ -4,3 +4,9 @@
 [submodule "prism"]
 	path = prism
 	url = https://github.com/ruby/prism
+[submodule "rubocop"]
+	path = rubocop
+	url = https://github.com/rubocop/rubocop
+[submodule "structuredmerge-ruby"]
+	path = structuredmerge-ruby
+	url = https://github.com/structuredmerge/structuredmerge-ruby
