@@ -2,10 +2,53 @@
 
 Scratch space for experiments. The read-only upstream checkouts live in `../refs`.
 
-| script | parses | with |
+| script | does |
+| --- | --- |
+| `prism_example.rb` | lists the methods a Ruby file defines, via Prism |
+| `md_nodes.rb` | shared commonmarker traversal used by the Markdown scripts |
+| `markdown_ast.rb` | dumps a Markdown AST (`--outline`, `--counts`) |
+| `md_shape.rb` | prints the block shape of each section — how the schema below was derived |
+| `md_schema.rb` | checks a document against the rule/example/reasoning schema (`--strict` to exit non-zero) |
+| `fix_mojibake.rb` | reverses double-encoded UTF-8 (`--write` to apply) |
+
+## The rule/example/reasoning schema
+
+`md_shape.rb` prints one line per section showing its blocks in order, which is how the schema was
+read off the document rather than guessed:
+
+```
+h2 (line 66) 2. Append Order Rule
+    para[**Append widgets from INSIDE the parent's tap block, not before it.**] code[ruby] code[ruby] para[**Rationale:**] thematic_break
+```
+
+Across all 17 numbered sections of `style-rules.md` the pattern is:
+
+| part | block | identified by |
 | --- | --- | --- |
-| `prism_example.rb` | Ruby | Prism (stdlib) |
-| `markdown_ast.rb` | Markdown | `commonmarker` (from the bundle) |
+| **rule** | first block of the section | a paragraph opening with `**bold**` — an imperative directive |
+| **example** | next | one or more fenced code blocks, usually a `WRONG`/`RIGHT` pair |
+| **reasoning** | last | a paragraph opening with a bold `**Label:**`, sometimes followed by a list |
+| terminator | — | a thematic break |
+
+Position is what separates rule from reasoning, not wording. Both are bold-led paragraphs, and both
+sometimes end in a colon, so a text heuristic cannot tell them apart; the rule is simply the section's
+first block. The reasoning label is `Rationale:` in 10 of 17 sections and otherwise varies —
+`When to use:`, `Key points:`, `Pattern elements:`, `Anti-pattern:`, `Implementations:`,
+`Store methods:`, `The pattern:`, `To trigger filter update:` — so the check requires a bold label,
+not a specific word.
+
+`md_schema.rb` treats an h2 titled `N. Name` as a rule section and skips the rest (title, table of
+contents, summary table). Run against its own source document, **14 of 17 sections conform**:
+
+```
+FAIL line 366  12. Incremental Development Rule   - no example: section has no code block
+FAIL line 431  14. ListModel Chain Pattern        - unfenced example: 1 code block without a language
+FAIL line 515  16. Delete with Undo Pattern       - no rule: first block is code_block, not a bold directive
+```
+
+Those three are genuine gaps in the reference document: §12 argues by numbered list with no code, §14
+opens with an indented ASCII diagram rather than a fenced block, and §16 jumps straight into code
+with no rule statement at all. Worth fixing upstream before this schema is enforced elsewhere.
 
 ## markdown_ast.rb
 
@@ -18,8 +61,8 @@ nix develop --command ruby work/markdown_ast.rb work/style-rules.md --outline  #
 nix develop --command ruby work/markdown_ast.rb work/style-rules.md --counts   # node tally
 ```
 
-`work/style-rules.md` is a byte-identical copy of the Ruby GTK4 style rules from
-`ruby-gtk-project/port-scaffold`. It parses to 458 nodes:
+`work/style-rules.md` is the Ruby GTK4 style rules from `ruby-gtk-project/port-scaffold`, with the
+upstream double-encoding repaired by `fix_mojibake.rb`. It parses to 458 nodes:
 
 ```
   text            147      code_block       29

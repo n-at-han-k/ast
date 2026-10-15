@@ -1,4 +1,4 @@
-# Ruby GTK4 Declarative Patterns Guide â€” Additions
+# Ruby GTK4 Declarative Patterns Guide — Additions
 
 This document contains additional patterns and rules discovered through building a complete contacts application.
 
@@ -10,7 +10,7 @@ This document contains additional patterns and rules discovered through building
 2. [Append Order Rule](#2-append-order-rule)
 3. [Single-Line Memoized Methods](#3-single-line-memoized-methods)
 4. [No Return Statements](#4-no-return-statements)
-5. [No Local Variables â€” Use tap](#5-no-local-variables--use-tap)
+5. [No Local Variables — Use tap](#5-no-local-variables--use-tap)
 6. [Method Chaining Over Multiple Statements](#6-method-chaining-over-multiple-statements)
 7. [The .then + if Pattern](#7-the-then--if-pattern)
 8. [Nesting Rule](#8-nesting-rule)
@@ -33,7 +33,7 @@ This document contains additional patterns and rules discovered through building
 The build function should only contain functional calls (append, child=, signal_connect). All styling (margins, CSS classes, alignments) goes in the memoized method's tap block.
 
 ```ruby
-# âŒ WRONG - styles in build
+# ❌ WRONG - styles in build
 def build
   header_box.tap do |hb|
     hb.margin_top = 24      # Style in build
@@ -45,7 +45,7 @@ def header_box = @header_box ||= Gtk::Box.new(:vertical, 12)
 ```
 
 ```ruby
-# âœ… RIGHT - styles in memoized method
+# ✅ RIGHT - styles in memoized method
 def build
   header_box.tap do |hb|
     hb.append(avatar_frame)  # Only functional calls
@@ -59,7 +59,7 @@ def header_box
 end
 ```
 
-**Rationale:** This separates concerns â€” the build method describes structure and behavior, while memoized methods define what each widget *is* (including its appearance).
+**Rationale:** This separates concerns — the build method describes structure and behavior, while memoized methods define what each widget *is* (including its appearance).
 
 ---
 
@@ -68,7 +68,7 @@ end
 **Append widgets from INSIDE the parent's tap block, not before it.**
 
 ```ruby
-# âŒ WRONG - appends before tap
+# ❌ WRONG - appends before tap
 box.append(label)
 box.append(button)
 box.tap do |b|
@@ -77,14 +77,14 @@ end
 ```
 
 ```ruby
-# âœ… RIGHT - appends inside tap
+# ✅ RIGHT - appends inside tap
 box.tap do |b|
   b.append(label)
   b.append(button)
 end
 ```
 
-**Rationale:** Keeps the declarative hierarchy clear â€” everything related to a widget happens inside its tap block.
+**Rationale:** Keeps the declarative hierarchy clear — everything related to a widget happens inside its tap block.
 
 ---
 
@@ -117,7 +117,7 @@ end
 **Use `.then` with conditional blocks instead of guard clauses with `return`.**
 
 ```ruby
-# âŒ WRONG - imperative guard with return
+# ❌ WRONG - imperative guard with return
 def show_edit_dialog
   contact = @store.selected_contact
   return unless contact
@@ -129,7 +129,7 @@ end
 ```
 
 ```ruby
-# âœ… RIGHT - functional with .then
+# ✅ RIGHT - functional with .then
 def show_edit_dialog
   @store.selected_contact.then do |contact|
     if contact
@@ -142,16 +142,16 @@ def show_edit_dialog
 end
 ```
 
-**Rationale:** `return` is imperative control flow. `.then` with conditionals is declarative â€” it describes structure rather than jumping around.
+**Rationale:** `return` is imperative control flow. `.then` with conditionals is declarative — it describes structure rather than jumping around.
 
 ---
 
-## 5. No Local Variables â€” Use tap
+## 5. No Local Variables — Use tap
 
 **Don't assign to local variables. Use `tap` for object configuration.**
 
 ```ruby
-# âŒ WRONG - local variable
+# ❌ WRONG - local variable
 def show_add_dialog
   editor = ContactEditor.new(...)
   editor.build
@@ -160,7 +160,7 @@ end
 ```
 
 ```ruby
-# âœ… RIGHT - tap block
+# ✅ RIGHT - tap block
 def show_add_dialog
   ContactEditor.new(...).tap do |editor|
     editor.build
@@ -178,7 +178,7 @@ end
 **Compose operations as single expressions.**
 
 ```ruby
-# âŒ WRONG - multiple statements
+# ❌ WRONG - multiple statements
 def add_contact(data)
   contact = @store.add_contact(**data)
   @store.select_contact(contact)
@@ -186,13 +186,13 @@ end
 ```
 
 ```ruby
-# âœ… RIGHT - single expression
+# ✅ RIGHT - single expression
 def add_contact(data)
   @store.select_contact(@store.add_contact(**data))
 end
 ```
 
-**Rationale:** The operation is: add â†’ select. The code should read that way. Data flows through the expression.
+**Rationale:** The operation is: add → select. The code should read that way. Data flows through the expression.
 
 ---
 
@@ -213,7 +213,7 @@ end
 This replaces the imperative pattern:
 
 ```ruby
-# âŒ WRONG
+# ❌ WRONG
 def operate_on_selected
   contact = @store.selected_contact
   return unless contact
@@ -240,7 +240,7 @@ def build
     win.title = 'App'
     win.child = box
 
-    # âœ… Controller belongs to window, configured inside window's tap
+    # ✅ Controller belongs to window, configured inside window's tap
     key_controller.tap do |kc|
       kc.signal_connect('key-pressed') do |_, keyval, _, state|
         handle_key(keyval, state)
@@ -253,7 +253,7 @@ def build
 
       button.tap do |btn|
         btn.label = 'Click'
-        # âœ… Signal belongs to button, inside button's tap
+        # ✅ Signal belongs to button, inside button's tap
         btn.signal_connect('clicked') { on_click }
       end
     end
@@ -270,7 +270,7 @@ end
 **Start with simple string attributes. Don't over-engineer until actually needed.**
 
 ```ruby
-# âœ… START HERE - simple and working
+# ✅ START HERE - simple and working
 class Contact < GLib::Object
   type_register
   attr_accessor :id, :name, :email, :phone
@@ -278,7 +278,7 @@ end
 ```
 
 ```ruby
-# âŒ DON'T jump to this prematurely
+# ❌ DON'T jump to this prematurely
 class Contact < GLib::Object
   type_register
   attr_accessor :id, :name, :emails, :phones  # Arrays of value objects
@@ -295,7 +295,7 @@ end
 **Don't hide UI elements based on empty values. Show the field, let it be empty.**
 
 ```ruby
-# âŒ WRONG - hiding rows based on data
+# ❌ WRONG - hiding rows based on data
 def show_contact(contact)
   email_value.label = contact.email
   email_row.visible = !contact.email.empty?
@@ -303,13 +303,13 @@ end
 ```
 
 ```ruby
-# âœ… RIGHT - always show the row
+# ✅ RIGHT - always show the row
 def show_contact(contact)
   email_value.label = contact.email
 end
 ```
 
-**Rationale:** Conditional visibility adds complexity and can cause layout shifts. An empty field is informative â€” it shows the user what data *could* be there.
+**Rationale:** Conditional visibility adds complexity and can cause layout shifts. An empty field is informative — it shows the user what data *could* be there.
 
 ---
 
@@ -383,27 +383,27 @@ end
 ```ruby
 module Backends
   class Backend
-    def load           # â†’ Array<Hash>
+    def load           # → Array<Hash>
       raise NotImplementedError
     end
 
-    def create(hash)   # â†’ Hash (with id)
+    def create(hash)   # → Hash (with id)
       raise NotImplementedError
     end
 
-    def update(hash)   # â†’ Hash
+    def update(hash)   # → Hash
       raise NotImplementedError
     end
 
-    def delete(id)     # â†’ Boolean
+    def delete(id)     # → Boolean
       raise NotImplementedError
     end
 
-    def display_name   # â†’ String (for UI)
+    def display_name   # → String (for UI)
       raise NotImplementedError
     end
 
-    def location       # â†’ String (file path or URI)
+    def location       # → String (file path or URI)
       raise NotImplementedError
     end
   end
@@ -433,8 +433,8 @@ end
 **Standard chain for filtered, sorted, selectable lists:**
 
 ```
-ListStore â†’ FilterListModel â†’ SortListModel â†’ SingleSelection
-    â†“              â†“                â†“              â†“
+ListStore → FilterListModel → SortListModel → SingleSelection
+    ↓              ↓                ↓              ↓
   data         filtering         sorting       selection
 ```
 
@@ -591,9 +591,9 @@ end
 ```
 
 **The pattern:**
-- `new` â€” instantiate with dependencies
-- `build` â€” wire up the UI (returns `app` for chaining)
-- `run` â€” start the GTK main loop
+- `new` — instantiate with dependencies
+- `build` — wire up the UI (returns `app` for chaining)
+- `run` — start the GTK main loop
 
 ---
 
