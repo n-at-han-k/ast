@@ -6,6 +6,8 @@ Scratch space for experiments. The read-only upstream checkouts live in `../refs
 | --- | --- |
 | `prism_example.rb` | lists the methods a Ruby file defines, via Prism |
 | `md_nodes.rb` | shared commonmarker traversal used by the Markdown scripts |
+| `markdown_types.rb` | base markdown node types — one class per kind, Prism-style, with `deconstruct_keys` |
+| `markdown_types_demo.rb` | prints the typed tree and matches composed patterns over it |
 | `md_rules.rb` | parses via TreeHaver and classifies blocks into `Ast::Merge::SectionTyping::TypedSection`s |
 | `treehaver_parse.rb` | what TreeHaver returns for a markdown file, and which pattern hooks the nodes have |
 | `ast_gems_survey.rb` | what the AST gems in the bundle provide, and their pattern-matching support |
@@ -40,6 +42,55 @@ first block. The reasoning label is `Rationale:` in 10 of 17 sections and otherw
 `When to use:`, `Key points:`, `Pattern elements:`, `Anti-pattern:`, `Implementations:`,
 `Store methods:`, `The pattern:`, `To trigger filter update:` — so the check requires a bold label,
 not a specific word.
+
+## Base markdown node types
+
+No markdown parser in the bundle has a class per node kind — each backend has one generic `Node`
+whose kind is a string, so `in Heading(level: 2)` cannot be written against it. `markdown_types.rb`
+supplies those types the way Prism does: one class per kind, generated from a single table, each
+carrying `deconstruct_keys` (named fields), `deconstruct` (positional children) and `line`.
+
+22 types cover CommonMark plus the GFM table extension:
+
+```
+Document Heading Paragraph CodeBlock HtmlBlock BlockQuote List ListItem ThematicBreak
+Table TableRow TableCell FootnoteDefinition
+Text Code Emph Strong Link Image SoftBreak LineBreak HtmlInline
+```
+
+Fields are only where a kind needs them — `Heading(level:)`, `CodeBlock(lang:, code:)`,
+`List(ordered:, tight:)`, `Link(url:, title:)`, `Text(content:)` — so the tree reads as data:
+
+```
+Document()
+  Heading(level: 1) line=1
+    Text(content: "Example Rules — Conforming") line=1
+  List(ordered: true, tight: true) line=9
+    ListItem() line=9
+      Paragraph() line=9
+        Link(url: "#1-memoize-widgets", title: nil) line=9
+```
+
+Parsing goes through TreeHaver, and kinds are mapped with
+`Markdown::Merge::NodeTypeNormalizer.canonical_type`, so the type table is keyed on canonical
+markdown types rather than one backend's spelling. Anything unmapped becomes `Unknown(original:)`;
+the 613-line `style-rules.md` produces none.
+
+Composition is then the caller's business, which is the point of having base types:
+
+```ruby
+case node
+in Heading(level: 2, children: [Text(content:)])        then "section #{content.inspect}"
+in Paragraph(children: [Strong => strong, *])           then "bold-led #{strong.text.inspect}"
+in CodeBlock(lang: String => lang)                      then "fenced #{lang} block"
+in CodeBlock(lang: nil)                                 then "indented block"
+in List(ordered: true, children:)                       then "ordered list of #{children.size}"
+end
+```
+
+`Strong(children: [Text(content:)])` deliberately does not match `**memoize with `||=`**`, whose
+children are `[Text, Code, Text]`. `Node#text` joins the inline children when the exact shape does
+not matter.
 
 ## Validating with pattern matching
 
