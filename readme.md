@@ -34,16 +34,35 @@ git submodule update --init --recursive
 
 | shell | contents |
 | --- | --- |
-| `nix develop` | `ruby_3_4` (3.4.9, matching the system ruby), `rubyfmt`, plus the shared `mkRubyShell` base: `bundix`, `git`, `libyaml`, `openssl`, `overmind`, `tmux`, `pkg-config` and a C toolchain |
+| `nix develop` | `ruby_4_0` (4.0.7) with the `Gemfile` gems from `bundlerEnv`, `rubyfmt`, plus the shared `mkRubyShell` base: `bundix`, `git`, `libyaml`, `openssl`, `overmind`, `tmux`, `pkg-config` and a C toolchain |
 | `nix develop .#notebook` | the above plus `python3` with `jupyterlab`/`notebook`/`ipykernel`, and `iruby` (a Ruby Jupyter kernel) |
 
-Both shells `unset RUBYOPT`. Without that, an inherited `RUBYOPT=-rrubyshell ...` makes every
-`ruby` invocation fail with `cannot load such file -- rubyshell`. `.envrc` unsets it too, since
-direnv does not run the flake's `shellHook` conditions the same way.
+## Gems
 
-`BUNDLE_PATH` points at `.bundle/vendor` in the repo root rather than at each submodule, because
-Nix's ruby cannot write to its own gem directory in the store and because per-submodule
-`vendor/bundle` directories would dirty the upstream checkouts.
+`Gemfile` lists the released gem for each thing under `refs/`, so `gemset.nix` is generated from
+rubygems the normal way:
+
+```sh
+bundle lock
+bundix -l
+```
+
+Note that these are the *published* gems, not the checkouts: `refs/` is at upstream HEAD, while the
+bundle resolves to the last release. Prism is the clearest case — `refs/prism` is 2.0.0.rc1 while
+the bundle gets 1.9.0, because `rubocop-ast` requires `prism ~> 1.7` and `prism-merge` requires
+`~> 1.6`. A path-sourced Gemfile cannot express this repo anyway, since bundix only reads
+`Gemfile.lock` and has no way to hash a working tree.
+
+`commonmarker` and `tree_sitter_language_pack` ship precompiled platform gems. `Gemfile.lock` names
+every platform they publish, and bundix collapses that to a single platform-less entry carrying one
+arbitrary platform's checksum, which then fails to match on fetch. `flake.nix` rewrites those two
+entries into the platform gem for the system being built for, with the checksums `Gemfile.lock`
+already records per platform. **Bumping either gem needs those hashes regenerated.**
+
+Both shells set `RUBYOPT=""` as a derivation attribute rather than unsetting it in `shellHook`,
+because the shared `mkRubyShell` base hook runs `bundix -l` before any hook of ours would get a
+chance; with an inherited `RUBYOPT=-rrubyshell ...` that call fails with
+`cannot load such file -- rubyshell`. `.envrc` also unsets it for the direnv path.
 
 The `notebook` shell starts a *separate* Jupyter server from the one the research notebook is
 currently driven through (that one is rooted at `$HOME`; see below).
