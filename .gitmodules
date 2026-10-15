@@ -1,21 +1,21 @@
 [submodule "decode"]
-	path = decode
+	path = refs/decode
 	url = https://github.com/socketry/decode
 [submodule "prism"]
-	path = prism
+	path = refs/prism
 	url = https://github.com/ruby/prism
 [submodule "rubocop"]
-	path = rubocop
+	path = refs/rubocop
 	url = https://github.com/rubocop/rubocop
 [submodule "structuredmerge-ruby"]
-	path = structuredmerge-ruby
+	path = refs/structuredmerge-ruby
 	url = https://github.com/structuredmerge/structuredmerge-ruby
 [submodule "rdoc"]
-	path = rdoc
+	path = refs/rdoc
 	url = https://github.com/ruby/rdoc
 [submodule "yard"]
-	path = yard
+	path = refs/yard
 	url = https://github.com/lsegal/yard
 [submodule "ruby-next"]
-	path = ruby-next
+	path = refs/ruby-next
 	url = https://github.com/ruby-next/ruby-next
