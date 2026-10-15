@@ -10,6 +10,9 @@ Research repo for Ruby AST work.
 | `decode` | https://github.com/socketry/decode | source and documentation analysis over a Ruby parser |
 | `rubocop` | https://github.com/rubocop/rubocop | AST-driven linting; node patterns via `rubocop-ast` |
 | `structuredmerge-ruby` | https://github.com/structuredmerge/structuredmerge-ruby | monorepo of structured-merge gems, including `prism-merge` and `ast-crispr-ruby-prism` |
+| `rdoc` | https://github.com/ruby/rdoc | Ruby's bundled documentation generator; its own parser and code-object model |
+| `yard` | https://github.com/lsegal/yard | documentation generator with a tag-based object model and its own Ruby parsers |
+| `ruby-next` | https://github.com/ruby-next/ruby-next | transpiles modern syntax to older Ruby; the one here that rewrites a tree rather than only reading it |
 
 ```sh
 git clone --recurse-submodules <this repo>
