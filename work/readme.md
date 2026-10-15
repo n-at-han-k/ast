@@ -6,7 +6,9 @@ Scratch space for experiments. The read-only upstream checkouts live in `../refs
 | --- | --- |
 | `prism_example.rb` | lists the methods a Ruby file defines, via Prism |
 | `md_nodes.rb` | shared commonmarker traversal used by the Markdown scripts |
-| `md_ast.rb` | typed AST nodes (`Rule`, `Example`, `Reasoning`, …) built from the commonmarker tree |
+| `md_ast.rb` | `AST::Node` subclasses (`Rule`, `Fenced`, `Reasoning`, …) built from the commonmarker tree |
+| `ast_gems_survey.rb` | what the AST gems in the bundle provide, and their pattern-matching support |
+| `ast_crispr_probe.rb` | walks the `Ast::Crispr` namespace |
 | `md_validate.rb` | validates documents with one `case`/`in` statement (`--strict` to exit non-zero) |
 | `markdown_ast.rb` | dumps a Markdown AST (`--outline`, `--counts`) |
 | `md_shape.rb` | prints the block shape of each section — how the schema below was derived |
@@ -40,35 +42,68 @@ not a specific word.
 
 ## Validating with pattern matching
 
-`md_ast.rb` turns the commonmarker tree into `Data` types — `Rule`, `Example`, `Reasoning`, `Prose`,
-`Items`, `Break`, `Table` — grouped into a `Section`. `Data` gives `deconstruct_keys` for free, so
-the whole schema is one `case` statement in `md_validate.rb`:
+`md_ast.rb` builds the document out of real `AST::Node` subclasses (the `ast` gem, already in the
+bundle via `parser`). One class per block kind — `Rule`, `Fenced`, `Indented`, `Reasoning`, `Prose`,
+`Items`, `Break`, `Table` — grouped into a `Section`, each with its own `deconstruct_keys`. The
+whole schema is then one `case` in `md_validate.rb`:
 
 ```ruby
 case section
-in Section(rule: Rule, examples: [Example(lang: String), *], reasoning: [Reasoning, *], terminated: true)
+in { examples: [*, Indented => block, *] }
+  [:indented_example, "the code block on line #{block.line} is indented, so it carries no language"]
+
+in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *], terminated: true }
   [:ok, "rule, example and reasoning all present"]
-in Section(rule: nil, blocks: [first, *])
-  [:no_rule, "section opens with #{first.class}, not a bold directive"]
-in Section(examples: [])
-  [:no_example, "no code block"]
-in Section(examples: [*, Example(lang: nil, line:), *])
-  [:unfenced_example, "code block on line #{line} has no language"]
-in Section(reasoning: [])
-  [:no_reasoning, "no bold-labelled block after the rule"]
-in Section(terminated: false)
+
+in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *] }
   [:no_terminator, "does not end with a thematic break"]
+
+in { rule: Rule, examples: [Fenced, *] }
+  [:no_reasoning, "nothing states why the rule holds"]
+
+in { rule: Rule(text:) }
+  [:no_example, "#{text[0, 40].inspect} is asserted with no example"]
+
+in { blocks: [opening, *] }
+  [:no_rule, "the section opens with #{opening.type}, so no bold directive states the rule"]
+
+in { heading: }
+  [:empty, "#{heading.inspect} has no body"]
 end
 ```
 
-Two Ruby constraints shape this. A pattern cannot be stored in a constant — `*` is invalid in a hash
-literal and `^` pins only expressions, not constants — so patterns must be written inline in a
-`case`. And an array pattern allows a single splat, so `[Rule, *, Example, *, Reasoning]` is a
-syntax error; sequence gaps go in a find pattern (`[*, x, *]`) or, as here, in derived `Section`
-members that each get their own pattern.
+Three things make this read as patterns rather than as conditions in disguise:
 
-`Section` is matched first against the conforming shape, so a section with several faults reports the
-first branch that matches rather than every fault.
+- **A class per kind, so the arms name types.** A fenced block and an indented one are `Fenced` and
+  `Indented`, not one `Example` carrying a `lang` that might be nil.
+- **Key presence carries the meaning.** `Section#deconstruct_keys` omits `rule:` when there is no
+  rule and omits `terminated:` unless the section ends in a break, so the arms test for a key rather
+  than compare against `nil`. `Fenced#deconstruct_keys` is a superset of `Indented`'s — it adds
+  `lang:` — which is the same trick.
+- **Failures are arms, not checks.** Every outcome, including the empty section, is a branch of the
+  one `case`, so there is no fallthrough and no guard clause.
+
+Patterns are ordered most specific first, which is load-bearing: `indented_example` precedes the
+conforming arm so an indented block is reported wherever it sits, and a section with several faults
+reports the first arm that matches.
+
+Two Ruby constraints also shape it. A pattern cannot live in a constant — `*` is invalid in a hash
+literal and `^` pins expressions, not constants — so patterns are written inline. And an array
+pattern allows one splat, so `[Rule, *, Fenced, *, Reasoning]` does not parse; gaps go in a find
+pattern (`[*, x, *]`) or into derived `Section` keys that each get their own pattern.
+
+Because the nodes are genuine `AST::Node`s, `to_sexp` comes for free — `--sexp` prints the tree, and
+it is what caught three bugs the table hid: a reasoning label classified as the rule in a section
+that has no rule, softbreaks dropped so two lines ran together (`cannot beextracted`), and reasoning
+text repeating its own label.
+
+```
+(section
+  (rule "Chain the list models in a fixed order.")
+  (indented "ListStore -> FilterListModel -> SortListModel -> SingleSelection\n")
+  (reasoning "Rationale" "The diagram is indented rather than fenced, so it carries no language…")
+  (break))
+```
 
 ### Fixtures
 
@@ -99,10 +134,20 @@ An h2 titled `N. Name` is treated as a rule section; the title, table of content
 are skipped. Run against the real document, **14 of 17 sections conform**:
 
 ```
-FAIL 12. Incremental Development Rule  no_example         no code block
-FAIL 14. ListModel Chain Pattern       unfenced_example   code block on line 435 has no language
-FAIL 16. Delete with Undo Pattern      no_rule            section opens with example, not a bold directive
+FAIL 12. Incremental Development Rule  no_example         "Never remove working functionality when " is asserted with no example
+FAIL 14. ListModel Chain Pattern       indented_example   the code block on line 435 is indented, so it carries no language
+FAIL 16. Delete with Undo Pattern      no_rule            the section opens with fenced, so no bold directive states the rule
 ```
+
+### Which AST gems were available
+
+`ast_gems_survey.rb` records why the `ast` gem is the one used here. `AST::Node` implements
+`deconstruct` as `[type, *children]`, so s-expression array patterns like `node in [:rule, *]` work
+without any help, though it has no `deconstruct_keys` — hence the subclasses above. `Markly::Node`
+and `Commonmarker::Node` implement neither. `ast-crispr` is not a node library at all: it is a
+surgical-edit contract (`read_ast`, `structural_owners`, `structure_profile`) with a markly-backed
+markdown adapter, so it belongs to a later experiment about *editing* these documents rather than
+validating them.
 
 Those three are genuine gaps in the reference document: §12 argues by numbered list with no code, §14
 opens with an indented ASCII diagram rather than a fenced block, and §16 jumps straight into code

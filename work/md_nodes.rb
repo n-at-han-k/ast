@@ -43,7 +43,10 @@ module MdNodes
   def text_of(node)
     "".dup.tap do |buffer|
       each_node(node) do |inner, _|
-        buffer << literal(inner).to_s if [:text, :code].include?(inner.type)
+        case inner.type
+        when :text, :code then buffer << literal(inner).to_s
+        when :softbreak, :linebreak then buffer << " "
+        end
       end
     end
   end

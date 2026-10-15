@@ -9,20 +9,26 @@ module MdValidate
 
   def verdict(section)
     case section
-    in MdAst::Section(rule: MdAst::Rule, examples: [MdAst::Example(lang: String), *], reasoning: [MdAst::Reasoning, *], terminated: true)
+    in { examples: [*, Indented => block, *] }
+      [:indented_example, "the code block on line #{block.line} is indented, so it carries no language"]
+
+    in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *], terminated: true }
       [:ok, "rule, example and reasoning all present"]
-    in MdAst::Section(rule: nil, blocks: [first, *])
-      [:no_rule, "section opens with #{first.class.name.split("::").last.downcase}, not a bold directive"]
-    in MdAst::Section(rule: nil)
-      [:no_rule, "section is empty"]
-    in MdAst::Section(examples: [])
-      [:no_example, "no code block"]
-    in MdAst::Section(examples: [*, MdAst::Example(lang: nil, line:), *])
-      [:unfenced_example, "code block on line #{line} has no language"]
-    in MdAst::Section(reasoning: [])
-      [:no_reasoning, "no bold-labelled block after the rule"]
-    in MdAst::Section(terminated: false)
+
+    in { rule: Rule, examples: [Fenced, *], reasoning: [Reasoning, *] }
       [:no_terminator, "does not end with a thematic break"]
+
+    in { rule: Rule, examples: [Fenced, *] }
+      [:no_reasoning, "nothing states why the rule holds"]
+
+    in { rule: Rule(text:) }
+      [:no_example, "#{text[0, 40].inspect} is asserted with no example"]
+
+    in { blocks: [opening, *] }
+      [:no_rule, "the section opens with #{opening.type}, so no bold directive states the rule"]
+
+    in { heading: }
+      [:empty, "#{heading.inspect} has no body"]
     end
   end
 
@@ -37,7 +43,7 @@ module MdValidate
 
     puts "#{path}: #{rules.size} rule section(s)"
     verdicts.each do |section, (kind, detail)|
-      puts format("  %-4s %-28s %-18s %s", kind == :ok ? "ok" : "FAIL", section.heading, kind, detail)
+      puts format("  %-4s %-40s %-18s %s", kind == :ok ? "ok" : "FAIL", section.heading, kind, detail)
     end
 
     verdicts.count { |_, (kind, _)| kind == :ok }.then do |passed|
@@ -50,9 +56,13 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   paths = ARGV.reject { |argument| argument.start_with?("--") }
-  abort "usage: ruby work/md_validate.rb FILE.md [FILE.md ...] [--strict]" if paths.empty?
+  abort "usage: ruby work/md_validate.rb FILE.md [FILE.md ...] [--strict|--sexp]" if paths.empty?
 
-  paths.map { |path| MdValidate.report(path) }.then do |results|
-    exit 1 if ARGV.include?("--strict") && !results.all?
+  if ARGV.include?("--sexp")
+    paths.each { |path| puts MdAst.parse(path).to_sexp }
+  else
+    paths.map { |path| MdValidate.report(path) }.then do |results|
+      exit 1 if ARGV.include?("--strict") && !results.all?
+    end
   end
 end
