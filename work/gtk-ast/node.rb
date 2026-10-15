@@ -138,7 +138,6 @@ module GtkAst
 
       TYPE = "Adw.Swipeable"
       GTYPE = "AdwSwipeable"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -177,7 +176,6 @@ module GtkAst
 
       TYPE = "Gdk.DevicePad"
       GTYPE = "GdkDevicePad"
-      PREREQUISITES = ["Gdk.Device"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -202,7 +200,6 @@ module GtkAst
 
       TYPE = "Gdk.DragSurface"
       GTYPE = "GdkDragSurface"
-      PREREQUISITES = ["Gdk.Surface"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -225,7 +222,6 @@ module GtkAst
 
       TYPE = "Gdk.Popup"
       GTYPE = "GdkPopup"
-      PREREQUISITES = ["Gdk.Surface"].freeze
       FIELDS = [:autohide, :parent].freeze
       PROPERTIES = {autohide: "autohide", parent: "parent"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -239,7 +235,6 @@ module GtkAst
 
       TYPE = "Gdk.Toplevel"
       GTYPE = "GdkToplevel"
-      PREREQUISITES = ["Gdk.Surface"].freeze
       FIELDS = [:capabilities, :decorated, :deletable, :fullscreen_mode, :gravity, :icon_list, :modal, :shortcuts_inhibited, :startup_id, :state, :title, :transient_for].freeze
       PROPERTIES = {capabilities: "capabilities", decorated: "decorated", deletable: "deletable", fullscreen_mode: "fullscreen-mode", gravity: "gravity", icon_list: "icon-list", modal: "modal", shortcuts_inhibited: "shortcuts-inhibited", startup_id: "startup-id", state: "state", title: "title", transient_for: "transient-for"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -559,7 +554,6 @@ module GtkAst
 
       TYPE = "Gio.PollableInputStream"
       GTYPE = "GPollableInputStream"
-      PREREQUISITES = ["Gio.InputStream"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -582,7 +576,6 @@ module GtkAst
 
       TYPE = "Gio.PollableOutputStream"
       GTYPE = "GPollableOutputStream"
-      PREREQUISITES = ["Gio.OutputStream"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -704,7 +697,6 @@ module GtkAst
 
       TYPE = "Gio.TlsClientConnection"
       GTYPE = "GTlsClientConnection"
-      PREREQUISITES = ["Gio.TlsConnection"].freeze
       FIELDS = [:accepted_cas, :server_identity, :use_ssl3, :validation_flags].freeze
       PROPERTIES = {accepted_cas: "accepted-cas", server_identity: "server-identity", use_ssl3: "use-ssl3", validation_flags: "validation-flags"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -730,7 +722,6 @@ module GtkAst
 
       TYPE = "Gio.TlsFileDatabase"
       GTYPE = "GTlsFileDatabase"
-      PREREQUISITES = ["Gio.TlsDatabase"].freeze
       FIELDS = [:anchors].freeze
       PROPERTIES = {anchors: "anchors"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -744,7 +735,6 @@ module GtkAst
 
       TYPE = "Gio.TlsServerConnection"
       GTYPE = "GTlsServerConnection"
-      PREREQUISITES = ["Gio.TlsConnection"].freeze
       FIELDS = [:authentication_mode].freeze
       PROPERTIES = {authentication_mode: "authentication-mode"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -806,7 +796,6 @@ module GtkAst
 
       TYPE = "Gtk.Actionable"
       GTYPE = "GtkActionable"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [:action_name, :action_target].freeze
       PROPERTIES = {action_name: "action-name", action_target: "action-target"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -820,7 +809,6 @@ module GtkAst
 
       TYPE = "Gtk.AppChooser"
       GTYPE = "GtkAppChooser"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [:content_type].freeze
       PROPERTIES = {content_type: "content-type"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -845,7 +833,6 @@ module GtkAst
 
       TYPE = "Gtk.CellEditable"
       GTYPE = "GtkCellEditable"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [:editing_canceled].freeze
       PROPERTIES = {editing_canceled: "editing-canceled"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -883,7 +870,6 @@ module GtkAst
 
       TYPE = "Gtk.Editable"
       GTYPE = "GtkEditable"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [:cursor_position, :editable, :enable_undo, :max_width_chars, :selection_bound, :text, :width_chars, :xalign].freeze
       PROPERTIES = {cursor_position: "cursor-position", editable: "editable", enable_undo: "enable-undo", max_width_chars: "max-width-chars", selection_bound: "selection-bound", text: "text", width_chars: "width-chars", xalign: "xalign"}.freeze
       KEYS = FIELDS.dup.freeze
@@ -925,7 +911,6 @@ module GtkAst
 
       TYPE = "Gtk.Native"
       GTYPE = "GtkNative"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -963,7 +948,6 @@ module GtkAst
 
       TYPE = "Gtk.Root"
       GTYPE = "GtkRoot"
-      PREREQUISITES = ["Gtk.Widget"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = (Native::FIELDS + FIELDS).uniq.freeze
@@ -1104,7 +1088,6 @@ module GtkAst
 
       TYPE = "PangoCairo.Font"
       GTYPE = "PangoCairoFont"
-      PREREQUISITES = ["Pango.Font"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze
@@ -1130,7 +1113,6 @@ module GtkAst
 
       TYPE = "PangoCairo.FontMap"
       GTYPE = "PangoCairoFontMap"
-      PREREQUISITES = ["Pango.FontMap"].freeze
       FIELDS = [].freeze
       PROPERTIES = {}.freeze
       KEYS = FIELDS.dup.freeze

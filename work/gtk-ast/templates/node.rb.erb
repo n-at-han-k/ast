@@ -59,9 +59,6 @@ module GtkAst
 
       TYPE = <%= node.type.inspect %>
       GTYPE = <%= node.gtype.inspect %>
-<%- unless node.prerequisites.empty? -%>
-      PREREQUISITES = <%= node.prerequisites.inspect %>.freeze
-<%- end -%>
       FIELDS = <%= node.readers.inspect %>.freeze
       PROPERTIES = <%= node.property_map.inspect %>.freeze
       KEYS = <%= node.keys_expression %>.freeze

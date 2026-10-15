@@ -61,10 +61,6 @@ module Generate
       implements.select { |name| Generate.kind_of(name) == "interface" }.map { |name| reference(name) }
     end
 
-    def prerequisites
-      implements.reject { |name| Generate.kind_of(name) == "interface" }
-    end
-
     def keys_expression
       parts = []
       parts << "superclass::KEYS" unless interface?
