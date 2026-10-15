@@ -1,0 +1,6 @@
+[submodule "decode"]
+	path = decode
+	url = https://github.com/socketry/decode
+[submodule "prism"]
+	path = prism
+	url = https://github.com/ruby/prism
