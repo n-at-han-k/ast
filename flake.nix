@@ -87,6 +87,21 @@
           ipykernel
         ]);
 
+        girLibraries = with pkgs; [
+          glib
+          gtk4
+          libadwaita
+          pango
+          gdk-pixbuf
+          graphene
+          harfbuzz
+          cairo
+          at-spi2-core
+          gobject-introspection
+        ];
+
+        girPath = pkgs.lib.makeSearchPathOutput "dev" "share/gir-1.0" girLibraries;
+
         shellEnv = /* bash */ ''
           export BUNDLE_GEMFILE="$PWD/Gemfile"
           export BUNDLE_FORCE_RUBY_PLATFORM=false
@@ -105,6 +120,18 @@
 
             pkgs.rubyfmt
           ];
+
+          shellHook = shellEnv;
+        };
+
+        devShells.gtk = lib.mkRubyShell {
+          RUBYOPT = "";
+          GIR_PATH = girPath;
+
+          buildInputs = [
+            gems
+            gems.wrappedRuby
+          ] ++ girLibraries;
 
           shellHook = shellEnv;
         };

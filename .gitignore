@@ -3,6 +3,7 @@ __pycache__/
 .jupyter/
 .venv/
 .direnv/
+work/gtk-ast/gir/
 .bundle/
 vendor/bundle/
 result
