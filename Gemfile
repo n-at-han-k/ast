@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "decode"
+gem "mail"
 gem "nokogiri"
 gem "prism"
 gem "rdoc"

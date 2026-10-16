@@ -1,0 +1,41 @@
+Return-Path: <ci@example.org>
+Received: from build.example.org (build.example.org [198.51.100.7])
+	by mx.example.com with ESMTPS id 4abc123
+	for <nathan@example.com>; Thu, 16 Oct 2026 09:14:02 +0100 (BST)
+Message-ID: <20261016091402.4abc123@build.example.org>
+In-Reply-To: <20261015174500.9def456@build.example.org>
+References: <20261015174500.9def456@build.example.org>
+Date: Thu, 16 Oct 2026 09:14:02 +0100
+From: CI Runner <ci@example.org>
+Sender: noreply@example.org
+Reply-To: builds@example.org
+To: Nathan <nathan@example.com>, Reviewers <reviewers@example.com>
+Cc: archive@example.org
+Subject: [ast] build 412 failed on ruby 4.0.7
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="=_boundary_412"
+
+--=_boundary_412
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Build 412 failed.
+
+  work/gtk-ast/parse.rb: 3 examples, 1 failure
+
+The log is attached.
+
+--=_boundary_412
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+<html><body><p>Build 412 failed.</p></body></html>
+
+--=_boundary_412
+Content-Type: text/plain; charset=UTF-8
+Content-Disposition: attachment; filename="build-412.log"
+Content-Transfer-Encoding: base64
+
+Y29tcGlsaW5nIG5vZGUucmIKMzcgbm9kZSBjbGFzc2VzCmZhaWxlZAo=
+
+--=_boundary_412--

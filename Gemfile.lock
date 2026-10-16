@@ -60,6 +60,7 @@ GEM
       commonmarker (~> 2.2)
       markdown-merge (= 7.1.10)
       version_gem (~> 1.1, >= 1.1.15)
+    date (3.6.0)
     decode (0.30.0)
       prism
       rbs (~> 4.0)
@@ -155,6 +156,12 @@ GEM
     language_server-protocol (3.17.0.6)
     lint_roller (1.1.0)
     logger (1.7.0)
+    mail (2.9.1)
+      logger
+      mini_mime (>= 0.1.1)
+      net-imap
+      net-pop
+      net-smtp
     markdown-merge (7.1.10)
       ast-merge (= 7.1.10)
       tree_haver (= 7.1.10)
@@ -164,6 +171,16 @@ GEM
       markdown-merge (= 7.1.10)
       markly (~> 0.9)
       version_gem (~> 1.1, >= 1.1.15)
+    mini_mime (1.1.5)
+    net-imap (0.6.8)
+      date
+      net-protocol
+    net-pop (0.1.2)
+      net-protocol
+    net-protocol (0.4.0)
+      timeout
+    net-smtp (0.5.2)
+      net-protocol
     nokogiri (1.19.4-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.4-aarch64-linux-musl)
@@ -312,6 +329,7 @@ GEM
       delegate (~> 0.1)
       rspec (~> 3.0)
       timecop (>= 0.7, < 1)
+    timeout (0.6.1)
     token-resolver (2.0.13)
       parslet (~> 2.0)
       version_gem (~> 1.1, >= 1.1.15)
@@ -395,6 +413,7 @@ DEPENDENCIES
   json-merge
   kettle-jem
   kramdown-merge
+  mail
   markdown-merge
   markly-merge
   nokogiri
@@ -441,6 +460,7 @@ CHECKSUMS
   commonmarker (2.10.0-x86_64-linux) sha256=945c510c0bfca9022245928e2248468fe3ddad58c939be0c37b20082cc392880
   commonmarker (2.10.0-x86_64-linux-musl) sha256=288cd4fb9f17eed2ffa73551ef241dcf594e0f484b2aee2a0999540333c0618e
   commonmarker-merge (7.1.10) sha256=7ef4257cb70ca08c28499e6616ae807bb25b3bddb4f3cdae4bfe301840b7c479
+  date (3.6.0) sha256=18ac945c4e24ebd93534f8eab8c2fd8c5604b3e977105b3798d62a1e8d27b580
   decode (0.30.0) sha256=f567364ad206f1b60987faeec0551dd1481aea7dfb192d7fab77020154b1a845
   delegate (0.7.0) sha256=058f1193d20bed3dbff99a2158564e3d397e808809fea4e9b256ad22bd9ea805
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
@@ -463,9 +483,15 @@ CHECKSUMS
   language_server-protocol (3.17.0.6) sha256=5ef2c0c138f8267e1bc631d3328347d354f96724b0af22f2c79516120443b7f0
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
+  mail (2.9.1) sha256=06574eca475253d6c18145dd70af80d0eb970182d55053497c5f4d797ea160e8
   markdown-merge (7.1.10) sha256=24df8bb1bdccc8d08db31e2f42f27ba553c5f7bdc30582374ab330105660f8d2
   markly (0.19.0) sha256=cd2c0e86eaf3660ed2a3a94104877f8bd41adda78e7c295c017d03de0d4044ca
   markly-merge (7.1.10) sha256=1a719463d5c53446f555b6dd3f478a0f28f73486757c5ca8b9cd67149fa29709
+  mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
+  net-imap (0.6.8) sha256=eb30bb62227b64a3af6b518b04b2375113d69f68f15de59b0193b07d98acf6d9
+  net-pop (0.1.2) sha256=848b4e982013c15b2f0382792268763b748cce91c9e91e36b0f27ed26420dff3
+  net-protocol (0.4.0) sha256=f9f90c8c6f64794a45160bf422177a336db12809de3beeeaa26b88fcd2e8c853
+  net-smtp (0.5.2) sha256=35103cc04d6b2d94632f9928ede07483c24b70b9c0db1f231fea43909b678f3c
   nokogiri (1.19.4-aarch64-linux-gnu) sha256=1269fb644a6de405057a53dd5c762b1209b43ca7424f839454d3dbc677c31a8f
   nokogiri (1.19.4-aarch64-linux-musl) sha256=35c65b9ce72b3bb03207bdbe7067915019dc18c1b9b59139684bd6690fdd01af
   nokogiri (1.19.4-arm64-darwin) sha256=a46db9853286e6597b36ebc6953817d15acf3a299583eb3f89fdc6f91dd63527
@@ -519,6 +545,7 @@ CHECKSUMS
   thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
   timecop (0.9.11) sha256=41284dc6e5041f2184f781ace766f942108c842f8d8c1386a26e6343decc7542
   timecop-rspec (1.0.3) sha256=005f14841bb606dcaefb060e321b5388e2e59537742bee8b3a9a9a40e598fab9
+  timeout (0.6.1) sha256=78f57368a7e7bbadec56971f78a3f5ecbcfb59b7fcbb0a3ed6ddc08a5094accb
   token-resolver (2.0.13) sha256=aba890ce6be32ff7226e991f9f54d7bd99df312849c119482de48661280e33a5
   toml (0.3.0) sha256=0a91d0f76a9036e84e44f95693b12f58d358c1df3ac8e3b5271f2056ecc6e4b9
   toml-merge (7.1.10) sha256=f30c47b8b7ed11fdc8a1376c3f391c709efd09638cabfc89a7e80eaa08cc2611

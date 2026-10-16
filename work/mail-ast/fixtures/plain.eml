@@ -1,0 +1,12 @@
+Message-ID: <20261016101500.1aaa111@example.com>
+In-Reply-To: <20261016091402.4abc123@build.example.org>
+References: <20261015174500.9def456@build.example.org>
+	<20261016091402.4abc123@build.example.org>
+Date: Thu, 16 Oct 2026 10:15:00 +0100
+From: Nathan <nathan@example.com>
+To: builds@example.org
+Subject: Re: [ast] build 412 failed on ruby 4.0.7
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Looking at it now.
