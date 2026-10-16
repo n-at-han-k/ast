@@ -150,6 +150,8 @@
           buildInputs = [
             gems
             gems.wrappedRuby
+
+            pkgs.python3Packages.rnc2rng
           ] ++ girLibraries;
 
           shellHook = shellEnv;
