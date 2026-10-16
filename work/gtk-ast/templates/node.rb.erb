@@ -1,87 +1,81 @@
-module GtkAst
+module GirAst
   class Node
-    KEYS = %i[type children].freeze
-    FIELDS = [].freeze
-    PROPERTIES = {}.freeze
+    attr_reader :children, :line
 
-    attr_reader :children
-
-    def initialize(children: [], **values)
+    def initialize(children: [], line: nil, **values)
       @children = children
+      @line = line
+      @values = values
 
-      values.each do |field, value|
-        raise ArgumentError, "#{self.class}: unknown field #{field.inspect}" unless self.class::KEYS.include?(field)
-
-        instance_variable_set(:"@#{field}", value)
+      values.each_key do |field|
+        raise ArgumentError, "#{self.class}: unknown field #{field.inspect}" unless self.class::FIELDS.include?(field)
       end
     end
 
-    def type = self.class::TYPE
-    def gtype = self.class::GTYPE
+    def definition = self.class::DEFINITION
+    def element = self.class::ELEMENT
     def fields = self.class::FIELDS
-    def properties = self.class::PROPERTIES
-    def keys = self.class::KEYS
+    def attributes = self.class::ATTRIBUTES
+    def allowed_children = self.class::CHILDREN
 
     alias deconstruct children
 
     def deconstruct_keys(requested)
-      (requested || [:type, :children, *keys]).each_with_object({}) do |key, deconstructed|
+      (requested || [:element, :children, *fields]).each_with_object({}) do |key, deconstructed|
         case key
-        when :type then deconstructed[:type] = type
+        when :element then deconstructed[:element] = element
         when :children then deconstructed[:children] = children
-        else deconstructed[key] = public_send(key) if keys.include?(key)
+        when :line then deconstructed[:line] = line
+        else deconstructed[key] = @values[key] if fields.include?(key)
         end
       end
     end
 
     def to_h
-      keys.to_h { |key| [key, public_send(key)] }
+      { element: }.merge(@values.compact)
+    end
+
+    def each_node(&block)
+      block.call(self)
+      children.each { |child| child.each_node(&block) }
     end
 
     def inspect
-      shown = keys.filter_map do |field|
-        value = public_send(field)
-        [field, value.inspect].join(": ") unless value.nil?
-      end
-      [self.class.name.split("::").last, "(", shown.join(", "), ")"].join
+      shown = @values.compact.map { |field, value| [field, value.inspect].join(": ") }.join(", ")
+      [self.class.name.split("::").last, "(", shown, ")"].join
     end
   end
-<%- namespaces.keys.sort.each do |namespace| -%>
-  module <%= namespace %>; end
-<%- end -%>
-<%- all_nodes.each do |node| -%>
+<%- nodes.each do |node| -%>
 
-  module <%= node.namespace %>
-    <%= node.declaration %>
-<%- node.includes.each do |included| -%>
-      include <%= included %>
-<%- end -%>
-
-      TYPE = <%= node.type.inspect %>
-      GTYPE = <%= node.gtype.inspect %>
-      FIELDS = <%= node.readers.inspect %>.freeze
-      PROPERTIES = <%= node.property_map.inspect %>.freeze
-      KEYS = <%= node.keys_expression %>.freeze
+  class <%= node.name %> < Node
+    DEFINITION = <%= node.definition.inspect %>
+    ELEMENT = <%= node.element.inspect %>
+    FIELDS = <%= node.readers.inspect %>.freeze
+    ATTRIBUTES = <%= node.attribute_map.inspect %>.freeze
+    CHILDREN = <%= node.child_map.inspect %>.freeze
+    REQUIRED = <%= node.required.inspect %>.freeze
 <%- node.domains.each do |field| -%>
-      <%= field.constant_name %> = <%= field.domain.map(&:to_sym).inspect %>.freeze
+    <%= field.constant_name %> = <%= field.domain.inspect %>.freeze
 <%- end -%>
 <%- unless node.readers.empty? -%>
 
-      attr_reader <%= node.readers.map(&:inspect).join(", ") %>
+    def <%= node.readers.first %> = @values[<%= node.readers.first.inspect %>]
+<%- node.readers.drop(1).each do |reader| -%>
+    def <%= reader %> = @values[<%= reader.inspect %>]
 <%- end -%>
-    end
+<%- end -%>
   end
 <%- end -%>
 
-  BY_TYPE = {
-<%- all_nodes.each do |node| -%>
-    <%= node.type.inspect %> => <%= node.qualified %>,
+  BY_ELEMENT = {
+<%- nodes.each do |node| -%>
+    <%= node.element_key.inspect %> => <%= node.name %>,
 <%- end -%>
   }.freeze
 
-  BY_GTYPE = {
-<%- all_nodes.select(&:gtype).each do |node| -%>
-    <%= node.gtype.inspect %> => <%= node.qualified %>,
+  BY_DEFINITION = {
+<%- nodes.each do |node| -%>
+    <%= node.definition.inspect %> => <%= node.name %>,
 <%- end -%>
   }.freeze
 end

@@ -8,14 +8,14 @@ groups:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: &1
+    domain:
     - '0'
     - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: &2
+    domain:
     - '0'
     - '1'
     required: false
@@ -44,7 +44,7 @@ groups:
   - name: transfer_ownership
     attribute: transfer-ownership
     type: text
-    domain: &3
+    domain:
     - none
     - container
     - full
@@ -70,7 +70,7 @@ groups:
   - name: throws
     attribute: throws
     type: text
-    domain: &4
+    domain:
     - '0'
     - '1'
     required: false
@@ -260,12 +260,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -314,12 +318,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -448,12 +456,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -536,12 +548,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -632,12 +648,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -715,12 +735,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -789,12 +813,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -811,7 +839,10 @@ nodes:
   - name: transfer_ownership
     attribute: transfer-ownership
     type: text
-    domain: *3
+    domain:
+    - none
+    - container
+    - full
     required: true
   groups:
   - Info.attrs
@@ -869,12 +900,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -934,12 +969,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -983,12 +1022,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -1112,7 +1155,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1198,7 +1243,10 @@ nodes:
   - name: transfer_ownership
     attribute: transfer-ownership
     type: text
-    domain: *3
+    domain:
+    - none
+    - container
+    - full
     required: true
   children:
   - name: DocElements
@@ -1233,7 +1281,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1284,7 +1334,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1337,7 +1389,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1393,7 +1447,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1444,7 +1500,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1499,7 +1557,9 @@ nodes:
   - name: throws
     attribute: throws
     type: text
-    domain: *4
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: moved_to
     attribute: moved-to
@@ -1562,12 +1622,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -1629,12 +1693,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -1688,12 +1756,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version
@@ -1747,12 +1819,16 @@ nodes:
   - name: introspectable
     attribute: introspectable
     type: text
-    domain: *1
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated
     attribute: deprecated
     type: text
-    domain: *2
+    domain:
+    - '0'
+    - '1'
     required: false
   - name: deprecated_version
     attribute: deprecated-version

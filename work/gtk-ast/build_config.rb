@@ -19,7 +19,7 @@ module BuildConfig
       "name" => reader_for(attribute.fetch("name")),
       "attribute" => attribute.fetch("name"),
       "type" => attribute["type"] || "text",
-      "domain" => attribute["domain"],
+      "domain" => attribute["domain"]&.dup,
       "required" => attribute.fetch("required"),
     }.compact
   end
