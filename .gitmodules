@@ -25,3 +25,6 @@
 [submodule "refs/cmark-gfm"]
 	path = refs/cmark-gfm
 	url = https://github.com/github/cmark-gfm
+[submodule "refs/nokogiri"]
+	path = refs/nokogiri
+	url = https://github.com/sparklemotion/nokogiri

@@ -30,7 +30,6 @@ module Gir
       when "bitfield" then start_enum(attributes, "flags")
       when "member" then @current_enum&.fetch("members")&.push(attributes["name"])
       when "implements" then @current&.fetch("implements")&.push(qualified(attributes["name"]))
-      when "prerequisite" then @current&.fetch("implements")&.push(qualified(attributes["name"]))
       when "property" then start_property(attributes)
       when "glib:signal" then @current&.fetch("signals")&.push(attributes["name"])
       when "array" then @current_property&.store("container", attributes["name"] || "array")

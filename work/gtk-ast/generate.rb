@@ -58,7 +58,7 @@ module Generate
     end
 
     def includes
-      implements.select { |name| Generate.kind_of(name) == "interface" }.map { |name| reference(name) }
+      implements.map { |name| reference(name) }
     end
 
     def keys_expression
