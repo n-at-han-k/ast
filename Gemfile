@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "decode"
+gem "nokogiri"
 gem "prism"
 gem "rdoc"
 gem "rubocop"

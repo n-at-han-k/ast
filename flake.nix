@@ -36,6 +36,25 @@
             };
           };
 
+          nokogiri = {
+            x86_64-linux = {
+              platform = "x86_64-linux-gnu";
+              sha256 = "0sm0h74pnjfxl1y2mzdy5wmysrc4rwnwwlnp34zmx4981d2ax7rp";
+            };
+            aarch64-linux = {
+              platform = "aarch64-linux-gnu";
+              sha256 = "13qsqdvwdnykaja86ks2lwyb828j5dv5rpakg82hbr3d99jgns8j";
+            };
+            x86_64-darwin = {
+              platform = "x86_64-darwin";
+              sha256 = "0l85yw2c4iwhb7cpwfr3xyjx9lwmcpbkqjx7ajchxw71sdbp1lbz";
+            };
+            aarch64-darwin = {
+              platform = "arm64-darwin";
+              sha256 = "09rmsqfzkipxi4zyp0wm54xcynni2ww9bipb6rxmkrl66a2vjvd4";
+            };
+          };
+
           tree_sitter_language_pack = {
             x86_64-linux = {
               platform = "x86_64-linux";

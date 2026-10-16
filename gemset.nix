@@ -446,6 +446,17 @@
     };
     version = "7.1.10";
   };
+  nokogiri = {
+    dependencies = ["racc"];
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "13qsqdvwdnykaja86ks2lwyb828j5dv5rpakg82hbr3d99jgns8j";
+      type = "gem";
+    };
+    version = "1.19.4";
+  };
   paco = {
     groups = ["default"];
     platforms = [];

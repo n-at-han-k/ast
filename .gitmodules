@@ -28,3 +28,9 @@
 [submodule "refs/nokogiri"]
 	path = refs/nokogiri
 	url = https://github.com/sparklemotion/nokogiri
+[submodule "refs/blueprint-compiler"]
+	path = refs/blueprint-compiler
+	url = https://gitlab.gnome.org/jwestman/blueprint-compiler.git
+[submodule "refs/gnome-builder"]
+	path = refs/gnome-builder
+	url = https://gitlab.gnome.org/GNOME/gnome-builder.git
