@@ -21,6 +21,7 @@ All under `refs/`:
 | `refs/rdoc` | https://github.com/ruby/rdoc | Ruby's bundled documentation generator; its own parser and code-object model |
 | `refs/yard` | https://github.com/lsegal/yard | documentation generator with a tag-based object model and its own Ruby parsers |
 | `refs/ruby-next` | https://github.com/ruby-next/ruby-next | transpiles modern syntax to older Ruby; the one here that rewrites a tree rather than only reading it |
+| `refs/dry-monads` | https://github.com/dry-rb/dry-monads | `Result` and `Maybe` as pattern-matchable types; `deconstruct` splats an array payload, so `in Failure(code, message)` works, and a hash payload answers `deconstruct_keys` |
 | `refs/commonmark-spec` | https://github.com/commonmark/commonmark-spec | the CommonMark standard; `spec.txt` carries 655 conformance examples |
 | `refs/cmark-gfm` | https://github.com/github/cmark-gfm | GitHub's GFM spec and reference implementation (a fork of `commonmark/cmark`); `test/spec.txt` carries 672 examples |
 | `refs/openapi3_parser` | https://github.com/kevindew/openapi3_parser | OpenAPI 3.0 parser; the one gem here with a real node tree (`node/` plus `node_factory/`) and source locations |

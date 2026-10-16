@@ -55,3 +55,6 @@
 [submodule "refs/openapi3_parser"]
 	path = refs/openapi3_parser
 	url = https://github.com/kevindew/openapi3_parser
+[submodule "refs/dry-monads"]
+	path = refs/dry-monads
+	url = https://github.com/dry-rb/dry-monads

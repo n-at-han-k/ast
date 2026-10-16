@@ -181,6 +181,16 @@
     };
     version = "7.1.10";
   };
+  concurrent-ruby = {
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "1qfi2ns3zwkgq616fc127xiqhan7g7m7gqpwriwcr34nds1vxwdj";
+      type = "gem";
+    };
+    version = "1.3.8";
+  };
   date = {
     groups = ["default"];
     platforms = [];
@@ -232,6 +242,28 @@
       type = "gem";
     };
     version = "7.1.10";
+  };
+  dry-core = {
+    dependencies = ["concurrent-ruby" "logger" "zeitwerk"];
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "18cn9s2p7cbgacy0z41h3sf9jvl75vjfmvj774apyffzi3dagi8c";
+      type = "gem";
+    };
+    version = "1.2.0";
+  };
+  dry-monads = {
+    dependencies = ["concurrent-ruby" "dry-core" "zeitwerk"];
+    groups = ["default"];
+    platforms = [];
+    source = {
+      remotes = ["https://rubygems.org"];
+      sha256 = "06z3h461kg7rwmf1krhx79g1smhyg6k724as2g78l37r5d8qihgz";
+      type = "gem";
+    };
+    version = "1.11.0";
   };
   emoji_regex = {
     groups = ["default"];

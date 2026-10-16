@@ -18,13 +18,14 @@ then a single `case`.
 | `.rubocop.yml` | turns the department on and selects the Prism parser engine |
 | `fixtures/visitor.rb` | a visitor with one hook that stops the walk and one that does not |
 | `demo.rb` | prints the types for a file, which is what the cops match against |
-| `engine_diff.rb` | the same source through both parser engines, then through Prism's own API |
 
 ```sh
 nix develop --command rubocop --config work/rubocop/.rubocop.yml work/rubocop
 nix develop --command ruby work/rubocop/demo.rb [FILE]
-nix develop --command ruby work/rubocop/engine_diff.rb
 ```
+
+Nothing here reads RuboCop's own tree, so `.rubocop.yml` sets no `ParserEngine`: the cops call
+`Prism.parse` themselves and the engine RuboCop would have used is irrelevant to them.
 
 ## The rule is the pattern
 

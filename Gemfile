@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "decode"
+gem "dry-monads"
 gem "mail"
 gem "nokogiri"
 gem "prism"

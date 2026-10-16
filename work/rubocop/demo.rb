@@ -36,9 +36,7 @@ SAMPLE = [
 ].join("\n") + "\n"
 
 path = ARGV.first
-source = path ? File.read(path) : SAMPLE
-
-result = Prism.parse(source)
+result = Prism.parse(path ? File.read(path) : SAMPLE)
 result.attach_comments!
 
 documented = result.value.breadth_first_search_all { |node| node.location.leading_comments.any? }
@@ -52,26 +50,33 @@ blocks = documented.flat_map { |owner|
                           .map { |run| RubyComments::Block.new(comments: run, budget: BUDGET) },
 ).sort_by(&:line)
 
-puts "#{path || "(sample)"}: #{blocks.length} comment block(s), budget #{BUDGET}"
+puts "#{path || "(sample)"}: #{blocks.length} RubyComments::Block, budget #{BUDGET}"
 puts
 
 blocks.each do |block|
+  owner =
+    case block
+    in RubyComments::Block(owner: Prism::DefNode(name:)) then "def #{name}"
+    in RubyComments::Block(owner: Prism::ClassNode | Prism::ModuleNode => node) then node.constant_path.slice
+    else "-"
+    end
+
   puts format(
-    "  line %-4d %-3d chars  overrun %-4d owner %-24s tag %-10s directive %-8s wrappable %s",
-    block.line, block.length, block.overrun,
-    block.owner ? [block.owner.class.name.split("::").last, block.owner.respond_to?(:name) ? block.owner.name : nil].compact.join(" ") : "-",
+    "  line %-4d %3d chars  overrun %-5d %-18s tag %-8s directive %-8s wrappable %s",
+    block.line, block.length, block.overrun, owner,
     block.tag || "-", block.directive || "-", block.wrappable,
   )
 end
 
 puts
+
 hooks = result.value.breadth_first_search_all(&PrismVisitors::VISITORS).flat_map { |visitor|
   visitor.body.body.filter_map { |statement|
     PrismVisitors::Hook.new(node: statement, visitor: visitor) if statement.is_a?(Prism::DefNode)
   }
 }
 
-puts "#{hooks.length} visitor hook(s)"
+puts "#{hooks.length} PrismVisitors::Hook"
 hooks.each do |hook|
   puts format("  line %-4d %-20s base %-14s descends %s", hook.line, hook.name, hook.base, hook.descends)
 end

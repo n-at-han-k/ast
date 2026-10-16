@@ -2,7 +2,6 @@ require:
   - ./lib/rubocop-demo.rb
 
 AllCops:
-  ParserEngine: parser_prism
   TargetRubyVersion: 3.4
   NewCops: disable
   DisabledByDefault: true
