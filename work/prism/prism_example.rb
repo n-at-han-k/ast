@@ -47,7 +47,7 @@ class MethodLister < Prism::Visitor
   end
 end
 
-path = ARGV.fetch(0) { abort "usage: ruby work/prism_example.rb FILE.rb" }
+path = ARGV.fetch(0) { abort "usage: ruby work/prism/prism_example.rb FILE.rb" }
 result = Prism.parse_file(path)
 result.attach_comments!
 

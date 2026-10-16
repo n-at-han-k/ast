@@ -23,6 +23,14 @@ All under `refs/`:
 | `refs/ruby-next` | https://github.com/ruby-next/ruby-next | transpiles modern syntax to older Ruby; the one here that rewrites a tree rather than only reading it |
 | `refs/commonmark-spec` | https://github.com/commonmark/commonmark-spec | the CommonMark standard; `spec.txt` carries 655 conformance examples |
 | `refs/cmark-gfm` | https://github.com/github/cmark-gfm | GitHub's GFM spec and reference implementation (a fork of `commonmark/cmark`); `test/spec.txt` carries 672 examples |
+| `refs/openapi3_parser` | https://github.com/kevindew/openapi3_parser | OpenAPI 3.0 parser; the one gem here with a real node tree (`node/` plus `node_factory/`) and source locations |
+| `refs/json_schemer` | https://github.com/davishmcclurg/json_schemer | JSON Schema validator; a `Schema` tree of per-vocabulary keyword objects, with OAS 3.0/3.1 vocabularies |
+| `refs/skooma` | https://github.com/skryukov/skooma | models OpenAPI 3.1 as a JSON Schema dialect: every OAS object is a schema whose keywords are its fields |
+| `refs/openapi_first` | https://github.com/ahx/openapi_first | request/response validation and coverage over a routing index rather than a document tree |
+| `refs/oas_core` | https://github.com/a-chacon/oas_core | the reverse direction: YARD comments to a typed `Spec::*` model to an OAS document |
+| `refs/openapi-ruby` | https://github.com/openapi-ruby/openapi-ruby | OpenAPI toolkit: spec DSL, component classes, validation middleware |
+
+See `work/openapi-schemas/readme.md` for what each of the OpenAPI ones actually models.
 
 ```sh
 git clone --recurse-submodules <this repo>
@@ -71,11 +79,40 @@ currently driven through (that one is rooted at `$HOME`; see below).
 
 ## Work
 
-See `work/readme.md`. `work/prism_example.rb` lists the methods defined in a Ruby file using
-`Prism::Visitor`; it needs no bundle, since Prism ships with Ruby 3.4.
+One directory per experiment, each with its own readme; `work/readme.md` is the index.
+
+`work/prism/` lists the methods defined in a Ruby file using `Prism::Visitor`; it needs no bundle,
+since Prism ships with Ruby 3.4.
 
 ```sh
-ruby work/prism_example.rb work/sample.rb
+ruby work/prism/prism_example.rb work/prism/sample.rb
+```
+
+`work/markdown-rules/` reads the rule/example/reasoning schema off a real style guide and validates
+documents against it with a single `case`/`in`; `work/gem-surveys/` records what each AST gem in the
+bundle provides.
+
+```sh
+nix develop --command ruby work/markdown-rules/md_validate.rb work/fixtures/correct.md
+```
+
+`work/rubocop/` builds custom cops with no rule logic in them. Prism already models comments and
+locations, so the only thing defined is the aggregate each rule is about — a comment paragraph, a
+visitor hook — as a `Data` whose attributes carry every fact the rule needs. The cop is then one
+`case`: `overrun: 1..` is the length limit, `tag: Symbol` is the YARD line, `descends: false` is the
+missing `super`, and `wrapped` is the autocorrection. See `work/rubocop/readme.md`.
+
+```sh
+nix develop --command rubocop --config work/rubocop/.rubocop.yml work/rubocop
+nix develop --command ruby work/rubocop/demo.rb
+```
+
+`work/openapi-schemas/` parses an OpenAPI 3.1 document through the `openapi_first` checkout and
+reports its endpoints with Ruby `case`/`in`, in the same patterns-file-plus-example shape as
+`work/mail-ast/`. See `work/openapi-schemas/readme.md`.
+
+```sh
+ruby work/openapi-schemas/example.rb [document.json]
 ```
 
 ## Notebook

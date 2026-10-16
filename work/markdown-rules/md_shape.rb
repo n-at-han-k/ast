@@ -13,7 +13,7 @@ def describe(node)
   end
 end
 
-path = ARGV.fetch(0) { abort "usage: ruby work/md_shape.rb FILE.md" }
+path = ARGV.fetch(0) { abort "usage: ruby work/markdown-rules/md_shape.rb FILE.md" }
 doc = MdNodes.parse_file(path)
 
 puts "#{path}: section shapes"

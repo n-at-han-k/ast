@@ -2,7 +2,7 @@ require "commonmarker-merge"
 require "markdown-merge"
 require "tree_haver"
 
-path = ARGV.fetch(0, "work/style-rules.md")
+path = ARGV.fetch(0, "work/markdown-rules/style-rules.md")
 source = File.read(path)
 
 tree = TreeHaver.with_backend("commonmarker") do

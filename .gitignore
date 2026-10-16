@@ -8,3 +8,4 @@ work/gtk-ast/gir/
 vendor/bundle/
 result
 result-*
+work/openapi-schemas/vendor/

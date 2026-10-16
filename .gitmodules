@@ -37,3 +37,21 @@
 [submodule "refs/gobject-introspection"]
 	path = refs/gobject-introspection
 	url = https://gitlab.gnome.org/GNOME/gobject-introspection.git
+[submodule "refs/json_schemer"]
+	path = refs/json_schemer
+	url = https://github.com/davishmcclurg/json_schemer
+[submodule "refs/openapi-ruby"]
+	path = refs/openapi-ruby
+	url = https://github.com/openapi-ruby/openapi-ruby
+[submodule "refs/skooma"]
+	path = refs/skooma
+	url = https://github.com/skryukov/skooma
+[submodule "refs/openapi_first"]
+	path = refs/openapi_first
+	url = https://github.com/ahx/openapi_first
+[submodule "refs/oas_core"]
+	path = refs/oas_core
+	url = https://github.com/a-chacon/oas_core
+[submodule "refs/openapi3_parser"]
+	path = refs/openapi3_parser
+	url = https://github.com/kevindew/openapi3_parser

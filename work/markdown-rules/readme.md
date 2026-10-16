@@ -1,0 +1,201 @@
+# markdown-rules
+
+Reading the rule/example/reasoning schema off a real style guide, and validating documents against
+it with one `case`/`in`. `style-rules.md` is the Ruby GTK4 style rules from
+`ruby-gtk-project/port-scaffold`, with the upstream double-encoding repaired by `fix_mojibake.rb`.
+
+| script | does |
+| --- | --- |
+| `md_nodes.rb` | shared commonmarker traversal used by the other scripts here |
+| `md_shape.rb` | prints the block shape of each section — how the schema below was derived |
+| `md_rules.rb` | parses via TreeHaver and classifies blocks into `Ast::Merge::SectionTyping::TypedSection`s |
+| `md_validate.rb` | validates documents with one `case`/`in` statement (`--strict` to exit non-zero) |
+| `markdown_ast.rb` | dumps a Markdown AST (`--outline`, `--counts`) |
+| `treehaver_parse.rb` | what TreeHaver returns for a markdown file, and which pattern hooks the nodes have |
+| `fix_mojibake.rb` | reverses double-encoded UTF-8 (`--write` to apply) |
+
+```sh
+nix develop --command ruby work/markdown-rules/md_validate.rb work/fixtures/correct.md work/fixtures/incorrect.md
+nix develop --command ruby work/markdown-rules/markdown_ast.rb work/markdown-rules/style-rules.md --counts
+nix develop --command ruby work/markdown-rules/md_shape.rb work/markdown-rules/style-rules.md
+```
+
+Fixtures live in `../fixtures`, shared with `../markdown-ast`. Node *types* for markdown are a
+separate experiment in `../markdown-ast`; this folder is about the document schema.
+
+## The rule/example/reasoning schema
+
+`md_shape.rb` prints one line per section showing its blocks in order, which is how the schema was
+read off the document rather than guessed:
+
+```
+h2 (line 66) 2. Append Order Rule
+    para[**Append widgets from INSIDE the parent's tap block, not before it.**] code[ruby] code[ruby] para[**Rationale:**] thematic_break
+```
+
+Across all 17 numbered sections of `style-rules.md` the pattern is:
+
+| part | block | identified by |
+| --- | --- | --- |
+| **rule** | first block of the section | a paragraph opening with `**bold**` — an imperative directive |
+| **example** | next | one or more fenced code blocks, usually a `WRONG`/`RIGHT` pair |
+| **reasoning** | last | a paragraph opening with a bold `**Label:**`, sometimes followed by a list |
+| terminator | — | a thematic break |
+
+Position is what separates rule from reasoning, not wording. Both are bold-led paragraphs, and both
+sometimes end in a colon, so a text heuristic cannot tell them apart; the rule is simply the section's
+first block. The reasoning label is `Rationale:` in 10 of 17 sections and otherwise varies —
+`When to use:`, `Key points:`, `Pattern elements:`, `Anti-pattern:`, `Implementations:`,
+`Store methods:`, `The pattern:`, `To trigger filter update:` — so the check requires a bold label,
+not a specific word.
+
+## Validating with pattern matching
+
+The types come from `ast-merge`, not from here. `Ast::Merge::SectionTyping` already provides what
+this needs:
+
+- `TypedSection = Struct.new(:type, :name, :node, :metadata, keyword_init: true)` — a Struct, so it
+  supports `deconstruct_keys` natively and goes straight into a `case`.
+- `CallableClassifier.new(lambda)` — a classifier without a subclass. The gem's own example writes a
+  lambda that walks `node.arguments` to pull out a block name, which is exactly how `md_rules.rb`
+  walks `next_sibling` to collect a heading's body.
+- `classify_all(children)` — classifies a node list, buffering consecutive unclassified nodes into
+  `:unclassified` sections, which `unclassified?` then skips (the title, table of contents and
+  summary table).
+
+`md_rules.rb` parses through TreeHaver with the commonmarker backend and classifies each heading
+matching `N. Name` into a `TypedSection`, with the body blocks typed by role — `:rule`,
+`:example`, `:indented_example`, `:reasoning`, `:terminator`, `:prose`, `:items` — in its metadata.
+Block types come from `Markdown::Merge::MarkdownStructure.node_type`, so they are the canonical
+markdown types rather than one backend's spelling.
+
+Validation is then one `case` over those typed sections:
+
+```ruby
+case section
+in TypedSection(metadata: { indented: [TypedSection(metadata: { line: }), *] })
+  [:indented_example, "the code block on line #{line} is indented, so it carries no language"]
+
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *], reasoning: [TypedSection, *], terminated: true })
+  [:ok, "rule, example and reasoning all present"]
+
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *], reasoning: [TypedSection, *] })
+  [:no_terminator, "does not end with a thematic break"]
+
+in TypedSection(metadata: { rule: TypedSection, examples: [TypedSection, *] })
+  [:no_reasoning, "nothing states why the rule holds"]
+
+in TypedSection(name:, metadata: { rule: TypedSection })
+  [:no_example, "#{name} is asserted with no code block"]
+
+in TypedSection(metadata: { blocks: [TypedSection(type:), *] })
+  [:no_rule, "the section opens with #{type}, so no bold directive states the rule"]
+
+in TypedSection(name:)
+  [:empty, "#{name} has no body"]
+end
+```
+
+Arms are ordered most specific first, which is load-bearing: `indented_example` precedes the
+conforming arm so an indented block is reported wherever it sits, and a section with several faults
+reports the first arm that matches.
+
+### Why the roles sit in metadata
+
+No markdown parser in the bundle supports pattern matching — `treehaver_parse.rb` and
+`ast_gems_survey.rb` record `deconstruct=false deconstruct_keys=false` for
+`Commonmarker::Merge::Backend::Node`, `Commonmarker::Node` and `Markly::Node` alike. Across all 31
+structuredmerge gems, `grep -rn deconstruct` matches exactly one file, `prism-merge`'s provider, and
+only because Prism itself implements both hooks. Classifying into `TypedSection` sidesteps that: the
+raw node rides along in `node:` and never needs to be matched directly.
+
+The grouping has to happen somewhere, too. Ruby allows one splat per array pattern, so a conjunction
+over a flat sibling sequence — rule first, fenced code somewhere, reasoning after it, break last —
+cannot be written as a single pattern; `[rule, *, example, *, reasoning]` is a syntax error. Naming
+the roles in metadata is what lets each arm be one flat pattern with no traversal in the validator.
+
+### Fixtures
+
+`fixtures/correct.md` and `fixtures/incorrect.md` exercise the branches in both directions; the
+incorrect one breaks the schema in exactly one way per section.
+
+```sh
+ruby work/markdown-rules/md_validate.rb work/fixtures/correct.md work/fixtures/incorrect.md
+```
+
+```
+work/fixtures/correct.md: 3 rule section(s)
+  ok   1. Memoize Widgets           ok                 rule, example and reasoning all present
+  ok   2. Prefer tap Over Locals    ok                 rule, example and reasoning all present
+  ok   3. One Expression Per Method ok                 rule, example and reasoning all present
+  3/3 conform
+
+work/fixtures/incorrect.md: 5 rule section(s)
+  FAIL 1. Missing Rule              no_rule            section opens with example, not a bold directive
+  FAIL 2. Missing Example           no_example         no code block
+  FAIL 3. Unfenced Example          unfenced_example   code block on line 33 has no language
+  FAIL 4. Missing Reasoning         no_reasoning       no bold-labelled block after the rule
+  FAIL 5. Missing Terminator        no_terminator      does not end with a thematic break
+  0/5 conform
+```
+
+An h2 titled `N. Name` is treated as a rule section; the title, table of contents and summary table
+are skipped. Run against the real document, **14 of 17 sections conform**:
+
+```
+FAIL 12. Incremental Development Rule  no_example         "Never remove working functionality when " is asserted with no example
+FAIL 14. ListModel Chain Pattern       indented_example   the code block on line 435 is indented, so it carries no language
+FAIL 16. Delete with Undo Pattern      no_rule            the section opens with fenced, so no bold directive states the rule
+```
+
+### Which AST gems were available
+
+`ast_gems_survey.rb` records why the `ast` gem is the one used here. `AST::Node` implements
+`deconstruct` as `[type, *children]`, so s-expression array patterns like `node in [:rule, *]` work
+without any help, though it has no `deconstruct_keys` — hence the subclasses above. `Markly::Node`
+and `Commonmarker::Node` implement neither. `ast-crispr` is not a node library at all: it is a
+surgical-edit contract (`read_ast`, `structural_owners`, `structure_profile`) with a markly-backed
+markdown adapter, so it belongs to a later experiment about *editing* these documents rather than
+validating them.
+
+Those three are genuine gaps in the reference document: §12 argues by numbered list with no code, §14
+opens with an indented ASCII diagram rather than a fenced block, and §16 jumps straight into code
+with no rule statement at all. Worth fixing upstream before this schema is enforced elsewhere.
+
+## markdown_ast.rb
+
+Parses a Markdown file into an AST. `commonmarker` 2.x is a binding for comrak, a CommonMark
+parser, and it came into the bundle as a dependency of `commonmarker-merge`.
+
+```sh
+nix develop --command ruby work/markdown-rules/markdown_ast.rb work/markdown-rules/style-rules.md            # full tree
+nix develop --command ruby work/markdown-rules/markdown_ast.rb work/markdown-rules/style-rules.md --outline  # headings only
+nix develop --command ruby work/markdown-rules/markdown_ast.rb work/markdown-rules/style-rules.md --counts   # node tally
+```
+
+`work/markdown-rules/style-rules.md` is the Ruby GTK4 style rules from `ruby-gtk-project/port-scaffold`, with the
+upstream double-encoding repaired by `fix_mojibake.rb`. It parses to 458 nodes:
+
+```
+  text            147      code_block       29
+  paragraph        77      code             22
+  item             38      heading          20
+  strong           34      thematic_break   19
+  table_cell       33      link             17
+```
+
+28 of the 29 code blocks are fenced `ruby`, which makes this file a natural bridge between the two
+scripts: the Markdown AST locates the Ruby, and Prism can parse what it finds.
+
+Two things the script exists to demonstrate:
+
+- `Commonmarker::Node#walk` yields every node but carries no depth, so the tree shape is lost.
+  Traversing `first_child` / `next_sibling` by hand is what makes indentation (and therefore the
+  structure) visible.
+- `node.string_content` raises for container nodes rather than returning nil, so every read of it
+  needs a guard. `source_position` works on every node, including `document`.
+
+Extensions are not on by default. Without `extension: { table: true }` the summary table at the end
+of the document parses as paragraphs of pipe characters instead of `table` / `table_row` /
+`table_cell`.
+

@@ -68,8 +68,8 @@ No markdown parser in the bundle has a class per node kind. `Commonmarker::Node`
 and `Commonmarker::Merge::Backend::Node` are each one generic class whose kind is a string, and none
 implement `deconstruct_keys`, so `in Heading(header_level: 2)` cannot be written against them.
 Across the 31 structuredmerge gems `grep -rn deconstruct` matches one file, `prism-merge`'s
-provider, and only because Prism itself implements both hooks. `work/ast_gems_survey.rb` and
-`work/treehaver_parse.rb` hold the measurements.
+provider, and only because Prism itself implements both hooks. `work/gem-surveys/ast_gems_survey.rb` and
+`work/markdown-rules/treehaver_parse.rb` hold the measurements.
 
 ## Nothing in the schema is written by hand
 

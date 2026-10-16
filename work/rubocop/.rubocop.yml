@@ -1,0 +1,17 @@
+require:
+  - ./lib/rubocop-demo.rb
+
+AllCops:
+  ParserEngine: parser_prism
+  TargetRubyVersion: 3.4
+  NewCops: disable
+  DisabledByDefault: true
+  Include:
+    - '**/*.rb'
+
+Demo/CommentLineLength:
+  Enabled: true
+  Max: 72
+
+Demo/VisitorMissingSuper:
+  Enabled: true

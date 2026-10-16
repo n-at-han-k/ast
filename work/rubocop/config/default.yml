@@ -1,0 +1,10 @@
+Demo/CommentLineLength:
+  Description: 'Limit how long a comment may be, by matching RubyComments::Block.'
+  Enabled: true
+  Max: 72
+  VersionAdded: '0.1'
+
+Demo/VisitorMissingSuper:
+  Description: 'A Prism visitor hook that never calls super stops the traversal.'
+  Enabled: true
+  VersionAdded: '0.1'

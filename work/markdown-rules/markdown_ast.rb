@@ -75,7 +75,7 @@ def excerpt(text, limit = 48)
   end
 end
 
-path = ARGV.fetch(0) { abort "usage: ruby work/markdown_ast.rb FILE.md [--outline|--counts]" }
+path = ARGV.fetch(0) { abort "usage: ruby work/markdown-rules/markdown_ast.rb FILE.md [--outline|--counts]" }
 mode = ARGV[1]
 ast = MarkdownAst.new(File.read(path))
 

@@ -49,7 +49,7 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   paths = ARGV.reject { |argument| argument.start_with?("--") }
-  abort "usage: ruby work/md_validate.rb FILE.md [FILE.md ...] [--strict]" if paths.empty?
+  abort "usage: ruby work/markdown-rules/md_validate.rb FILE.md [FILE.md ...] [--strict]" if paths.empty?
 
   paths.map { |path| MdValidate.report(path) }.then do |results|
     exit 1 if ARGV.include?("--strict") && !results.all?
